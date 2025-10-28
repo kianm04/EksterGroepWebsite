@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 const buttons = [
   { id: 'home', label: 'Home', href: '#home' },
@@ -7,14 +7,8 @@ const buttons = [
   { id: 'contact', label: 'Contact', href: '#contact' }
 ]
 
-const isVisible = ref(false)
-
-onMounted(() => {
-  // Trigger entrance animation after mount
-  setTimeout(() => {
-    isVisible.value = true
-  }, 100)
-})
+// Start visible on client, handle animation via CSS
+const isVisible = ref(true)
 </script>
 
 <template>

@@ -108,13 +108,13 @@ watch(state, (newState) => {
       )
       if (hasCameraTrack && mixer.value) {
 
-        // console.log(`Playing camera animation: ${clip.name}`)
-        // const action = mixer.value.clipAction(clip)
-        // mixer.value.timeScale = 0.1;
+        console.log(`Playing camera animation: ${clip.name}`)
+        const action = mixer.value.clipAction(clip)
+        mixer.value.timeScale = 0.1;
 
-        // action.play()
+        action.play()
         // Make the animation loop
-        // action.setLoop(THREE.LoopRepeat, Infinity)
+        action.setLoop(THREE.LoopRepeat, Infinity)
       }
     })
   }

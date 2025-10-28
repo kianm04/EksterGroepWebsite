@@ -32,14 +32,24 @@ const onCameraReady = (camera: THREE.PerspectiveCamera) => {
       :show-glassmorphism="true"
     />
 
-    <!-- 3D Canvas background -->
+    <!-- 3D Canvas background with proper z-index -->
     <TresCanvas
       clear-color="#82DBC5"
       window-size
       ref="canvasRef"
+      class="!z-0"
+      :style="{ position: 'absolute', inset: 0 }"
     >
       <!-- <FirstExperience /> -->
       <HouseModel @camera-ready="onCameraReady"></HouseModel>
     </TresCanvas>
   </div>
 </template>
+
+<style scoped>
+/* Ensure canvas stays in background */
+:deep(canvas) {
+  z-index: 0 !important;
+  position: absolute !important;
+}
+</style>

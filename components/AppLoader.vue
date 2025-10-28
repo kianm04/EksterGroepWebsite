@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const { isLoading, loadingProgress } = useAppLoader()
 
 // Local state for animations
-const isVisible = ref(false)
+const isVisible = ref(true) // Start visible to avoid hydration issues
 const isExiting = ref(false)
 
 // Computed properties for styling
 const progressBarWidth = computed(() => `${loadingProgress.value}%`)
-
-// Show loading animation after mount
-onMounted(() => {
-  setTimeout(() => {
-    isVisible.value = true
-  }, 50)
-})
 
 // Watch for loading complete to trigger exit animation
 watch(isLoading, (newValue) => {
