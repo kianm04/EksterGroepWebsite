@@ -1,0 +1,41 @@
+{
+  "name": "ekster-website",
+  "private": true,
+  "type": "module",
+  "description": "TresJS Nuxt application",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "lint": "eslint ",
+    "lint:fix": "eslint  --fix",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "npm run decoders:copy",
+    "decoders:copy": "cpx \"node_modules/three/examples/jsm/libs/meshopt_decoder.module.*\" public/libs/ && cpx \"node_modules/three/examples/jsm/libs/basis/**\" public/libs/basis/ && cpx \"node_modules/three/examples/jsm/libs/draco/**\" public/libs/draco/"
+  },
+  "dependencies": {
+    "@google/model-viewer": "^4.1.0",
+    "@nuxt/eslint": "^1.9.0",
+    "@tresjs/cientos": "latest",
+    "@tresjs/core": "^5.1.0",
+    "@tresjs/leches": "latest",
+    "@tresjs/nuxt": "5.0.0",
+    "@tresjs/post-processing": "latest",
+    "@types/node": "^24.8.1",
+    "eslint": "^9.36.0",
+    "gsap": "^3.13.0",
+    "nuxt": "^4.1.2",
+    "radix-vue": "^1.9.17",
+    "three": "^0.180.0",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@tresjs/eslint-config": "^1.1.0",
+    "@types/three": "latest",
+    "cpx": "^1.5.0",
+    "eslint": "^9.16.0",
+    "typescript": "latest"
+  }
+}
