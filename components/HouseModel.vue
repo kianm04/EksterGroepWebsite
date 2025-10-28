@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useGLTF } from '@tresjs/cientos'
 import * as THREE from 'three'
-import { inject, shallowRef, onUnmounted, computed, watch } from 'vue'
+import { inject, shallowRef, onUnmounted, computed, watch, nextTick } from 'vue'
 
 const { state, isLoading } = useGLTF('/models/ok12b.glb', { draco: true })
 
@@ -17,6 +17,11 @@ const completeModelLoading = inject<() => void>('completeModelLoading')
 // Store the found camera reference (stays in scene hierarchy) and animation mixer
 const sceneCamera = shallowRef<THREE.PerspectiveCamera | null>(null)
 const mixer = shallowRef<THREE.AnimationMixer | null>(null)
+
+// Store camera's world transforms to preserve Blender positioning
+const cameraWorldPosition = shallowRef<THREE.Vector3 | null>(null)
+const cameraWorldQuaternion = shallowRef<THREE.Quaternion | null>(null)
+const cameraWorldScale = shallowRef<THREE.Vector3 | null>(null)
 
 // Track loading state
 let hasCalledComplete = false
@@ -54,11 +59,24 @@ watch(state, (newState) => {
       // Update world matrix for this specific camera
       child.updateMatrixWorld(true)
 
-      // Get the world position (after parent transforms)
+      // Get and store the world transforms (after parent transforms)
       const worldPosition = new THREE.Vector3()
+      const worldQuaternion = new THREE.Quaternion()
+      const worldScale = new THREE.Vector3()
+
       child.getWorldPosition(worldPosition)
+      child.getWorldQuaternion(worldQuaternion)
+      child.getWorldScale(worldScale)
+
       console.log("Camera world position:", worldPosition)
+      console.log("Camera world quaternion:", worldQuaternion)
+      console.log("Camera world scale:", worldScale)
       console.log("Camera matrix world:", child.matrixWorld)
+
+      // Store the world transforms for later application
+      cameraWorldPosition.value = worldPosition.clone()
+      cameraWorldQuaternion.value = worldQuaternion.clone()
+      cameraWorldScale.value = worldScale.clone()
 
       sceneCamera.value = child
 
@@ -102,33 +120,79 @@ watch(state, (newState) => {
   }
 }, { immediate: true })
 
-// Animation loop with clock for delta time
+// Animation and render loop with clock for delta time
 const clock = new THREE.Clock()
 let animationId: number | null = null
 
 const animate = () => {
+  // Always apply stored transforms to maintain camera position
+  if (sceneCamera.value && cameraWorldPosition.value) {
+    // Ensure camera maintains its stored world transforms
+    applyStoredTransforms()
+
+    // Update the camera's world matrix
+    sceneCamera.value.updateMatrixWorld(true)
+  }
+
+  // Update animation mixer if it exists
   if (mixer.value) {
     const delta = clock.getDelta()
-
-    // Update the animation mixer
     mixer.value.update(delta)
+  }
 
-    // After updating the animation, ensure the camera's world matrix is updated
-    // This is crucial for animations that move the camera or its parents
-    if (sceneCamera.value) {
-      sceneCamera.value.updateMatrixWorld(true)
-    }
-
-    // Also update the entire scene's matrix world
-    if (state.value?.scene) {
-      state.value.scene.updateMatrixWorld(true)
-    }
+  // Update the entire scene's matrix world
+  if (state.value?.scene) {
+    state.value.scene.updateMatrixWorld(true)
   }
 
   animationId = requestAnimationFrame(animate)
 }
 
-// Start animation when mixer is ready
+// Apply stored world transforms to the camera
+let hasLoggedTransforms = false
+const applyStoredTransforms = (shouldLog = false) => {
+  if (sceneCamera.value && cameraWorldPosition.value && cameraWorldQuaternion.value && cameraWorldScale.value) {
+    // Apply the stored world transforms
+    sceneCamera.value.position.copy(cameraWorldPosition.value)
+    sceneCamera.value.quaternion.copy(cameraWorldQuaternion.value)
+    sceneCamera.value.scale.copy(cameraWorldScale.value)
+
+    // Force matrix update
+    sceneCamera.value.updateMatrixWorld(true)
+
+    // Only log once or when explicitly requested
+    if ((shouldLog || !hasLoggedTransforms) && shouldLog !== false) {
+      console.log("Applied stored camera transforms")
+      console.log("  Position:", sceneCamera.value.position)
+      console.log("  Quaternion:", sceneCamera.value.quaternion)
+      console.log("  Scale:", sceneCamera.value.scale)
+      hasLoggedTransforms = true
+    }
+  }
+}
+
+// Watch for camera attachment, apply transforms, and start render loop
+watch(sceneCamera, async (newCamera) => {
+  if (newCamera) {
+    // Wait for next tick to ensure camera is attached to TresJS
+    await nextTick()
+
+    // Apply the stored transforms after attachment (with logging)
+    applyStoredTransforms(true)
+
+    // Apply again after a short delay to ensure it sticks
+    setTimeout(() => {
+      applyStoredTransforms(true)
+    }, 100)
+
+    // Start the render loop to continuously maintain camera transforms
+    if (!animationId) {
+      animate()
+    }
+  }
+})
+
+// Also start animation when mixer is ready (for actual animations)
 watch(mixer, (newMixer) => {
   if (newMixer && !animationId) {
     animate()
