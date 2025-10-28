@@ -5,14 +5,18 @@ import { inject, shallowRef, onUnmounted, computed, watch } from 'vue'
 
 const { state, isLoading } = useGLTF('/models/ok12b.glb', { draco: true })
 
+// Emit event when camera is ready
+const emit = defineEmits<{
+  'camera-ready': [camera: THREE.PerspectiveCamera]
+}>()
+
 // Inject loading progress update functions from app.vue
 const updateModelLoadingProgress = inject<(progress: number) => void>('updateModelLoadingProgress')
 const completeModelLoading = inject<() => void>('completeModelLoading')
 
-// Store the camera and animation mixer
-const camera = shallowRef<THREE.PerspectiveCamera | null>(null)
+// Store the found camera reference (stays in scene hierarchy) and animation mixer
+const sceneCamera = shallowRef<THREE.PerspectiveCamera | null>(null)
 const mixer = shallowRef<THREE.AnimationMixer | null>(null)
-const clock = new THREE.Clock()
 
 // Track loading state
 let hasCalledComplete = false
@@ -32,21 +36,44 @@ watch(isLoading, (loading) => {
   }
 }, { immediate: true })
 
-// Extract camera and setup animation from the loaded scene
+// Extract camera reference and setup animation from the loaded scene
 watch(state, (newState) => {
   if (!newState?.scene) return
 
-  // Find camera in the scene
+  // First, update the entire scene's matrix world to ensure all transforms are current
+  newState.scene.updateMatrixWorld(true)
+
+  // Find camera in the scene (but keep it in the hierarchy)
+  // The camera remains part of the scene and inherits all parent transforms
   newState.scene.traverse((child) => {
-    if (child instanceof THREE.PerspectiveCamera && !camera.value) {
+    if (child instanceof THREE.PerspectiveCamera && !sceneCamera.value) {
       console.log("Camera found:", child.name)
-      console.log(child)
-      camera.value = child
+      console.log("Camera local position:", child.position)
+      console.log("Camera parent:", child.parent?.name)
+
+      // Update world matrix for this specific camera
+      child.updateMatrixWorld(true)
+
+      // Get the world position (after parent transforms)
+      const worldPosition = new THREE.Vector3()
+      child.getWorldPosition(worldPosition)
+      console.log("Camera world position:", worldPosition)
+      console.log("Camera matrix world:", child.matrixWorld)
+
+      sceneCamera.value = child
+
+      console.log("GLTF camera ready for TresJS")
+      console.log("  FOV:", child.fov)
+      console.log("  Near:", child.near)
+      console.log("  Far:", child.far)
+
+      // Emit the camera so parent component can use it
+      emit('camera-ready', child)
     }
   })
 
   // Setup animation if animations exist
-  if (newState.animations && newState.animations.length > 0 && camera.value) {
+  if (newState.animations && newState.animations.length > 0) {
     console.log(`Found ${newState.animations.length} animations`)
 
     // Create animation mixer for the scene
@@ -59,7 +86,7 @@ watch(state, (newState) => {
       // Check if this animation affects the camera
       const hasCameraTrack = clip.tracks.some(track =>
         track.name.includes('Camera') ||
-        track.name.includes(camera.value?.name || '')
+        track.name.includes(sceneCamera.value?.name || '')
       )
       if (hasCameraTrack && mixer.value) {
 
@@ -75,18 +102,33 @@ watch(state, (newState) => {
   }
 }, { immediate: true })
 
-// Animation loop
+// Animation loop with clock for delta time
+const clock = new THREE.Clock()
 let animationId: number | null = null
 
 const animate = () => {
   if (mixer.value) {
     const delta = clock.getDelta()
+
+    // Update the animation mixer
     mixer.value.update(delta)
+
+    // After updating the animation, ensure the camera's world matrix is updated
+    // This is crucial for animations that move the camera or its parents
+    if (sceneCamera.value) {
+      sceneCamera.value.updateMatrixWorld(true)
+    }
+
+    // Also update the entire scene's matrix world
+    if (state.value?.scene) {
+      state.value.scene.updateMatrixWorld(true)
+    }
   }
+
   animationId = requestAnimationFrame(animate)
 }
 
-// Start animation loop when mixer is ready
+// Start animation when mixer is ready
 watch(mixer, (newMixer) => {
   if (newMixer && !animationId) {
     animate()
@@ -108,30 +150,24 @@ onUnmounted(() => {
   }
 })
 
-// Dynamically find the first mesh/object that isn't a camera
-const mesh = computed(() => {
-  if (!state.value?.scene) return null
-
-  for (const child of state.value.scene.children) {
-    // Skip cameras
-    if (child instanceof THREE.Camera) continue
-
-    // Return first mesh or group
-    if (child instanceof THREE.Mesh || child instanceof THREE.Group) {
-      return child
-    }
-  }
-  return null
-})
+// Use the entire scene instead of extracting individual objects
+// This preserves the hierarchy and relationships between objects
+const scene = computed(() => state.value?.scene || null)
 </script>
 
 <template>
-  <!-- Use the camera directly from the GLB file -->
-  <primitive v-if="camera" :object="camera" />
+  <!-- Render the entire scene with all its objects and hierarchy intact -->
+  <!-- The GLTF camera stays within the scene to maintain parent transformations -->
+  <primitive v-if="scene" :object="scene" />
 
-  <!-- Model will appear when loaded -->
-  <primitive v-if="mesh" :object="mesh" />
+  <!-- Use the GLTF camera directly as the active camera -->
+  <!-- The key is to render it after the scene so it can be found and attached -->
+  <primitive
+    v-if="sceneCamera"
+    :object="sceneCamera"
+    attach="camera"
+  />
 
+  <!-- Additional lighting for the scene -->
   <TresAmbientLight :intensity="3" />
-
 </template>
