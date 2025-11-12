@@ -16,6 +16,7 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 export const AppLoader: typeof import("../components/AppLoader.vue")['default']
 export const HouseModel: typeof import("../components/HouseModel.vue")['default']
+export const HouseModelRig: typeof import("../components/HouseModelRig.vue")['default']
 export const ImageOverlay: typeof import("../components/ImageOverlay.vue")['default']
 export const Navigation: typeof import("../components/Navigation.vue")['default']
 export const NuxtWelcome: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']
@@ -170,6 +171,7 @@ export const Body: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watch
 export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-island")['default']
 export const LazyAppLoader: LazyComponent<typeof import("../components/AppLoader.vue")['default']>
 export const LazyHouseModel: LazyComponent<typeof import("../components/HouseModel.vue")['default']>
+export const LazyHouseModelRig: LazyComponent<typeof import("../components/HouseModelRig.vue")['default']>
 export const LazyImageOverlay: LazyComponent<typeof import("../components/ImageOverlay.vue")['default']>
 export const LazyNavigation: LazyComponent<typeof import("../components/Navigation.vue")['default']>
 export const LazyNuxtWelcome: LazyComponent<typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']>

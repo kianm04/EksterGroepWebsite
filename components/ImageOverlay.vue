@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   imageSrc: string
   alt?: string
@@ -13,6 +15,12 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   showGlassmorphism: true
 })
+
+// Get loading state from composable
+const { isLoading } = useAppLoader()
+
+// Image overlay is visible when NOT loading
+const isVisible = computed(() => !isLoading.value)
 
 // Position classes based on prop
 const positionClasses = {
@@ -32,8 +40,12 @@ const sizeClasses = {
 
 <template>
   <div
-    class="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-slide-in"
-    :class="positionClasses[position]"
+    v-show="isVisible"
+    class="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-700 delay-150"
+    :class="[
+      positionClasses[position],
+      isVisible ? 'opacity-100 translate-y-0 animate-slide-in' : 'opacity-0 translate-y-4'
+    ]"
   >
     <!-- Glassmorphic container -->
     <div

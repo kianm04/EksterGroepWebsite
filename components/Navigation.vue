@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 
 const buttons = [
   { id: 'home', label: 'Home', href: '#home' },
@@ -7,14 +7,18 @@ const buttons = [
   { id: 'contact', label: 'Contact', href: '#contact' }
 ]
 
-// Start visible on client, handle animation via CSS
-const isVisible = ref(true)
+// Get loading state from composable
+const { isLoading } = useAppLoader()
+
+// Navigation is visible when NOT loading
+const isVisible = computed(() => !isLoading.value)
 </script>
 
 <template>
   <nav
-    class="fixed top-0 left-0 right-0 z-50 px-6 py-6 transition-opacity duration-700"
-    :class="isVisible ? 'opacity-100' : 'opacity-0'"
+    v-show="isVisible"
+    class="fixed top-0 left-0 right-0 z-50 px-6 py-6 transition-all duration-700"
+    :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'"
   >
     <div class="max-w-7xl mx-auto flex justify-center">
       <!-- Glassmorphic container -->

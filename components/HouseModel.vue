@@ -3,7 +3,7 @@ import { useGLTF } from '@tresjs/cientos'
 import * as THREE from 'three'
 import { inject, shallowRef, onUnmounted, computed, watch, nextTick } from 'vue'
 
-const { state, isLoading } = useGLTF('/models/ok12b.glb', { draco: true })
+const { state, isLoading } = useGLTF('/models/ok12b_large.glb', { draco: true })
 
 // Emit event when camera is ready
 const emit = defineEmits<{
@@ -224,13 +224,7 @@ const scene = computed(() => state.value?.scene || null)
   <!-- The GLTF camera stays within the scene to maintain parent transformations -->
   <primitive v-if="scene" :object="scene" />
 
-  <!-- Use the GLTF camera directly as the active camera -->
   <!-- The key is to render it after the scene so it can be found and attached -->
-  <primitive
-    v-if="sceneCamera"
-    :object="sceneCamera"
-    attach="camera"
-  />
 
   <!-- Additional lighting for the scene -->
   <TresAmbientLight :intensity="3" />

@@ -25,6 +25,7 @@ export default <Partial<typeof Config>>{
         'glow': 'glow 2s ease-in-out infinite',
         'slide-in': 'slide-in 0.6s ease-out',
         'fade-in': 'fade-in 0.5s ease-out',
+        'shimmer': 'shimmer 2s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -43,6 +44,18 @@ export default <Partial<typeof Config>>{
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(200%)' },
+        },
+      },
+      zIndex: {
+        '10': '10',
+        '20': '20',
+        '30': '30',
+        '40': '40',
+        '50': '50',
+        '60': '60',
       },
       backdropBlur: {
         xs: '2px',

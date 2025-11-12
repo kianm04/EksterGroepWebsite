@@ -16,6 +16,10 @@ watch(isLoading, (newValue) => {
     isExiting.value = true
     setTimeout(() => {
       isVisible.value = false
+      // Reset isExiting after animation completes to properly unmount
+      setTimeout(() => {
+        isExiting.value = false
+      }, 100) // Small delay after visibility change
     }, 700) // Match exit animation duration
   }
 })
@@ -25,7 +29,7 @@ watch(isLoading, (newValue) => {
   <Transition name="loader-fade">
     <div
       v-if="isLoading || isExiting"
-      class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+      class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden pointer-events-none"
       :class="{
         'opacity-0': !isVisible,
         'opacity-100': isVisible && !isExiting,
@@ -119,20 +123,6 @@ watch(isLoading, (newValue) => {
 </template>
 
 <style scoped>
-/* Shimmer animation */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(200%);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s ease-in-out infinite;
-}
-
 /* Loader fade transition */
 .loader-fade-enter-active,
 .loader-fade-leave-active {

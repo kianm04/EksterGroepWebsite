@@ -1,29 +1,22 @@
 <script setup lang="ts">
-import { TresCanvas } from '@tresjs/core'
 import { ref } from 'vue'
 import * as THREE from 'three'
-import HouseModel from '~/components/HouseModel.vue'
+import { TresCanvas } from '@tresjs/core'
+import HouseModelRig from '~/components/HouseModelRig.vue'
 import Navigation from '~/components/Navigation.vue'
 import ImageOverlay from '~/components/ImageOverlay.vue'
 
-const canvasRef = ref<InstanceType<typeof TresCanvas> | null>(null)
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null)
 
-// Handle when the GLTF camera is ready
 const onCameraReady = (camera: THREE.PerspectiveCamera) => {
-  console.log('GLTF camera received in parent:', camera)
-
-  // Set this camera as the active camera for the canvas
   activeCamera.value = camera
 }
 </script>
 
 <template>
   <div class="relative w-full h-screen overflow-hidden">
-    <!-- Navigation overlay -->
     <Navigation />
 
-    <!-- Image overlay at bottom -->
     <ImageOverlay
       image-src="/images/Image1-768x432.png"
       alt="Example overlay image"
@@ -32,24 +25,14 @@ const onCameraReady = (camera: THREE.PerspectiveCamera) => {
       :show-glassmorphism="true"
     />
 
-    <!-- 3D Canvas background with proper z-index -->
     <TresCanvas
       clear-color="#82DBC5"
       window-size
-      ref="canvasRef"
+      :camera="activeCamera || undefined"
       class="!z-0"
       :style="{ position: 'absolute', inset: 0 }"
     >
-      <!-- <FirstExperience /> -->
-      <HouseModel @camera-ready="onCameraReady"></HouseModel>
+      <HouseModelRig @camera-ready="onCameraReady" />
     </TresCanvas>
   </div>
 </template>
-
-<style scoped>
-/* Ensure canvas stays in background */
-:deep(canvas) {
-  z-index: 0 !important;
-  position: absolute !important;
-}
-</style>
