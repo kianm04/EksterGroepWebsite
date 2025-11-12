@@ -55,11 +55,11 @@ watch(
     // set up animation
     if (state.value?.animations?.length) {
       const _mixer = new THREE.AnimationMixer(loadedScene);
-      _mixer.timeScale = 0.5;
+      _mixer.timeScale = 0.1;
       console.log(state.value.animations);
 
       state.value.animations.forEach((clip) => {
-        if (clip.name == "MakeCircle.001") {
+        if (clip.name == "CircleMove.001") {
           _mixer.clipAction(clip).play();
         }
         // if (clip.name == "ZoomOut") {

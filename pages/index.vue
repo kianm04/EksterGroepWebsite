@@ -94,7 +94,7 @@ const onCameraReady = (camera: THREE.PerspectiveCamera) => {
       <!-- Right column - 3D Model -->
       <div class="relative h-96 sm:h-[500px] lg:h-auto lg:min-h-screen">
         <TresCanvas
-          clear-color="#82DBC5"
+          clear-color="#F7F9F7"
           :camera="activeCamera || undefined"
           class="w-full h-full"
         >
