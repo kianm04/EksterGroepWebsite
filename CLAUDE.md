@@ -2,36 +2,36 @@
 
 ## Design Philosophy
 
-You are building a **premium architectural visualization website** with the design sensibility of a **Senior Visual Designer at Adobe**. Every element should feel polished, sophisticated, and meticulously crafted.
+You are building a **premium architectural visualization website** with the design sensibility of a **professional architectural firm**. Every element should feel clean, sophisticated, and purposeful - emphasizing clarity and professional presentation.
 
 ### Core Visual Principles
 
-1. **Glassmorphism & Depth**
-   - Use frosted glass effects with `backdrop-blur-md` or stronger
-   - Layer semi-transparent backgrounds (white/20-30 opacity)
-   - Create depth with inset borders, subtle gradients, and sophisticated shadows
-   - Apply multiple shadow layers for realism: `box-shadow: 0 8px 32px rgba(...), 0 0 0 1px rgba(...) inset`
+1. **Clean Minimalism & Structure**
+   - Use crisp white backgrounds with RAL9010 (#F7F9F7) as the primary color
+   - Eliminate all transparency and glass effects
+   - Create depth through subtle shadows and clean geometric borders
+   - Apply single, purposeful shadows: `box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)`
 
-2. **Micro-Interactions Matter**
-   - Every hover state should have 3-4 visual changes (scale, background, glow, shadow)
-   - Use GPU-accelerated transforms: `scale()`, `translateZ(0)`
-   - Transition durations: 300-700ms with `ease-out` or custom bezier curves
-   - Add shimmer/gradient slide effects for premium feel
-   - Stagger animations when multiple elements appear (100-150ms delays)
+2. **Subtle Interactions**
+   - Hover states should have 1-2 clean visual changes (subtle scale, background, or shadow)
+   - Use smooth transforms: `scale(1.02)` for subtle elevation
+   - Transition durations: 200-300ms with `ease-out`
+   - Avoid complex effects - focus on crisp, professional feedback
+   - Use minimal stagger animations (50-100ms delays) sparingly
 
 3. **Typography & Spacing**
    - Use the defined font stack: `-apple-system, BlinkMacSystemFont, Inter, Segoe UI`
-   - Apply `tracking-wide` for headings and buttons
-   - Use `text-shadow` subtly for readability on transparent backgrounds
-   - Maintain generous whitespace - never crowd elements
+   - Apply `tracking-wide` sparingly for major headings only
+   - Avoid text-shadows completely - rely on color contrast for readability
+   - Maintain generous whitespace with clean, architectural spacing
 
 4. **Color Palette**
-   - Primary background: `#82DBC5` (cyan-bg)
-   - Light accent: `#A8E6D5` (cyan-light)
-   - Dark accent: `#5CC4A8` (cyan-dark)
-   - UI elements: White with varying opacity (20-80%)
-   - Text: Gray-800/80 to Gray-900 with opacity variations
-   - Always maintain WCAG AA contrast ratios
+   - Primary background: RAL9010 `#F7F9F7` (pure white)
+   - Secondary background: Pure white `#FFFFFF`
+   - Accent elements: Light gray `#F5F5F5` for subtle differentiation
+   - UI elements: Solid white backgrounds with clean gray borders
+   - Text: Gray-900 `#111827` for primary text, Gray-600 `#4B5563` for secondary
+   - Always maintain WCAG AA contrast ratios with high-contrast approach
 
 5. **Animation Standards**
    - Entrance animations: fade-in + slide-in (0.5-0.7s)
@@ -44,15 +44,15 @@ You are building a **premium architectural visualization website** with the desi
 
 When creating ANY component, ensure:
 
-- [ ] Has glassmorphic styling if it overlays 3D content
-- [ ] Hover state includes scale transform (1.03-1.05x)
-- [ ] Includes glow/shadow effect on interaction
+- [ ] Uses clean white backgrounds with solid colors (no transparency)
+- [ ] Hover state includes subtle scale transform (1.01-1.02x) if appropriate
+- [ ] Uses clean, minimal shadows for depth when needed
 - [ ] Has proper focus-visible states for accessibility
-- [ ] Uses stagger animations if multiple items
-- [ ] Implements at least one "wow" detail (shimmer, gradient, particle, etc.)
+- [ ] Avoids unnecessary animations - only animate when it adds value
+- [ ] Maintains architectural precision and cleanliness
 - [ ] Text is anti-aliased (`-webkit-font-smoothing: antialiased`)
-- [ ] Transitions use GPU acceleration
-- [ ] Has active/pressed state (scale 0.97-0.98x)
+- [ ] Transitions are smooth and purposeful (200-300ms)
+- [ ] Has subtle active/pressed state (scale 0.98x) for interactive elements
 
 ---
 
@@ -130,19 +130,19 @@ nuxt.config.ts       # SSR/prerender rules, modules
 
 ### TailwindCSS Usage
 
-**Preferred Pattern**: Use Tailwind utility classes extensively, complemented by scoped `<style>` blocks for complex effects.
+**Preferred Pattern**: Use Tailwind utility classes extensively, complemented by scoped `<style>` blocks for clean styling.
 
 ```vue
 <template>
-  <div class="backdrop-blur-md bg-white/20 border border-white/30 rounded-full">
-    <!-- Tailwind for structure -->
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <!-- Clean, minimal structure -->
   </div>
 </template>
 
 <style scoped>
-/* Custom CSS for advanced effects */
+/* Clean, minimal styling */
 .element {
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
 ```
@@ -165,22 +165,24 @@ Use the custom animations defined in `tailwind.config.ts`:
 >
 ```
 
-### Shadow & Glow Layers
+### Clean Shadows & Borders
 
-Create depth with layered shadows:
+Create depth with clean, minimal shadows:
 
 ```css
-/* Outer shadow + inner highlight */
-box-shadow:
-  0 8px 32px 0 rgba(31, 38, 135, 0.15),
-  0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+/* Simple, clean shadow */
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+/* Elevated shadow for hover states */
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 ```
 
-For glowing effects on hover:
+For clean borders:
 ```css
-/* Cyan glow */
-.glow-effect {
-  box-shadow: 0 0 20px rgba(130, 219, 197, 0.4);
+/* Clean border styling */
+.bordered-element {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
 }
 ```
 
@@ -201,7 +203,7 @@ For glowing effects on hover:
 - Use cameras exported from Blender/3D software when possible
 - Always include `TresAmbientLight` for base illumination
 - Consider `TresDirectionalLight` for realistic shadows
-- Match lighting to the overall color scheme (cyan tones)
+- Use neutral lighting that complements the clean white aesthetic
 
 ### Performance Optimization
 
@@ -270,7 +272,7 @@ onUnmounted(() => {
 
 Follow conventional commits:
 ```
-feat: add glassmorphic navigation component
+feat: add clean white navigation component
 fix: resolve camera positioning in HouseModel
 style: enhance button hover animations
 perf: optimize 3D model loading with Draco
@@ -287,23 +289,23 @@ Before creating a PR:
 - [ ] TypeScript errors resolved
 - [ ] Responsive design tested (mobile/tablet/desktop)
 - [ ] Performance tested (Lighthouse score > 90)
-- [ ] Visual polish: gradients, shadows, transitions complete
+- [ ] Visual polish: clean styling, minimal shadows, smooth transitions complete
 
 ---
 
 ## Design Inspiration & References
 
 When building components, think:
-- **Glassmorphism**: iOS/macOS Big Sur design language
-- **Premium software**: Autodesk, SketchUp Pro, Adobe Creative Cloud
-- **Micro-interactions**: Stripe, Linear, Framer
-- **3D web experiences**: Bruno Simon's portfolio, Awwwards winners
+- **Architectural minimalism**: Tadao Ando, John Pawson, Dieter Rams design principles
+- **Professional software**: AutoCAD, Rhino, SketchUp Pro interface design
+- **Clean interactions**: Apple.com, Stripe, Linear clean aesthetics
+- **Architectural websites**: Foster + Partners, Zaha Hadid Architects, BIG
 
 ### Resources
-- [Glassmorphism Generator](https://hype4.academy/tools/glassmorphism-generator)
 - [TresJS Documentation](https://tresjs.org/)
 - [Three.js Examples](https://threejs.org/examples/)
 - [Tailwind CSS Docs](https://tailwindcss.com/)
+- [RAL Color Standards](https://www.ral-farben.de/)
 
 ---
 
@@ -314,7 +316,7 @@ When building components, think:
 ```vue
 <template>
   <div class="fixed inset-0 z-40 pointer-events-none">
-    <div class="pointer-events-auto backdrop-blur-lg bg-white/20 border border-white/30 rounded-2xl shadow-2xl">
+    <div class="pointer-events-auto bg-white border border-gray-200 rounded-lg shadow-lg">
       <!-- Your content with SEO-friendly HTML -->
     </div>
   </div>
@@ -325,19 +327,9 @@ When building components, think:
 
 ```vue
 <button
-  class="group relative px-6 py-3 rounded-full overflow-hidden transition-all duration-300 hover:scale-105 active:scale-98"
+  class="px-6 py-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:scale-102 active:scale-98 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
 >
-  <!-- Background layer -->
-  <div class="absolute inset-0 bg-white/0 group-hover:bg-white/60 transition-all duration-300"></div>
-
-  <!-- Glow layer -->
-  <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-cyan-light/40 to-cyan-dark/40"></div>
-
-  <!-- Shimmer effect -->
-  <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-
-  <!-- Text -->
-  <span class="relative z-10">Button Text</span>
+  Button Text
 </button>
 ```
 
@@ -345,14 +337,14 @@ When building components, think:
 
 ## Final Notes
 
-**Quality over speed**. Take time to add those extra visual details:
-- The subtle gradient overlay
-- The shimmer on hover
-- The perfectly timed stagger animation
-- The crisp text shadow
+**Quality over speed**. Focus on architectural precision and clean details:
+- The perfect white balance
+- The subtle shadow depth
+- The clean geometric alignment
+- The crisp typography hierarchy
 
-These details transform a good website into an **exceptional** one.
+These details transform a good website into a **professional architectural showcase**.
 
-**Remember**: Every pixel matters. Every transition should feel intentional. Every interaction should delight.
+**Remember**: Every pixel matters. Every line should be intentional. Every interaction should feel precise.
 
-Build something beautiful. 🎨
+Build something timeless and professional. 🏛️

@@ -14,7 +14,6 @@
     "decoders:copy": "cpx \"node_modules/three/examples/jsm/libs/meshopt_decoder.module.*\" public/libs/ && cpx \"node_modules/three/examples/jsm/libs/basis/**\" public/libs/basis/ && cpx \"node_modules/three/examples/jsm/libs/draco/**\" public/libs/draco/"
   },
   "dependencies": {
-    "@google/model-viewer": "^4.1.0",
     "@nuxt/eslint": "^1.9.0",
     "@tresjs/cientos": "latest",
     "@tresjs/core": "^5.1.0",

@@ -1,61 +1,60 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const buttons = [
-  { id: 'home', label: 'Home', href: '#home' },
-  { id: 'gallery', label: 'Gallery', href: '#gallery' },
-  { id: 'contact', label: 'Contact', href: '#contact' }
-]
+  { id: "home", label: "Home", href: "#home" },
+  { id: "gallery", label: "Gallery", href: "#gallery" },
+  { id: "contact", label: "Contact", href: "#contact" },
+];
 
 // Get loading state from composable
-const { isLoading } = useAppLoader()
+const { isLoading } = useAppLoader();
 
 // Navigation is visible when NOT loading
-const isVisible = computed(() => !isLoading.value)
+const isVisible = computed(() => !isLoading.value);
 </script>
 
 <template>
   <nav
     v-show="isVisible"
-    class="fixed top-0 left-0 right-0 z-50 px-6 py-6 transition-all duration-700"
-    :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'"
+    class="fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-700 bg-white border-b border-gray-200"
+    :class="
+      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+    "
+    style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
   >
-    <div class="max-w-7xl mx-auto flex justify-center">
-      <!-- Glassmorphic container -->
-      <div
-        class="relative inline-flex items-center gap-2 px-3 py-3 rounded-full backdrop-blur-md bg-white/20 border border-white/30 shadow-2xl"
-        style="box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;"
-      >
-        <!-- Subtle gradient overlay -->
-        <div class="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Logo section -->
+      <div class="flex items-center">
+        <img
+          src="/images/loading-pagina-logo.png"
+          alt="Ekster Logo"
+          class="h-24 w-24 object-contain"
+        />
+      </div>
 
-        <!-- Navigation buttons -->
+      <!-- Navigation buttons -->
+      <div class="flex items-center gap-1">
         <a
           v-for="(button, index) in buttons"
           :key="button.id"
           :href="button.href"
-          class="relative px-6 py-3 rounded-full font-medium text-sm tracking-wide transition-all duration-300 ease-out cursor-pointer select-none group overflow-hidden"
+          class="relative px-6 py-3 rounded-lg font-medium text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:shadow-md"
           :style="`animation-delay: ${index * 100}ms;`"
           :class="[
-            'text-gray-800/80 hover:text-gray-900',
-            'hover:scale-105 active:scale-98',
-            isVisible ? 'animate-slide-in' : 'opacity-0'
+            'text-gray-700 hover:text-gray-900',
+            'hover:scale-102 active:scale-98',
+            'ml-2',
+            isVisible ? 'animate-slide-in' : 'opacity-0',
           ]"
         >
-          <!-- Button background layers -->
-          <div class="absolute inset-0 bg-white/0 group-hover:bg-white/60 transition-all duration-300 rounded-full"></div>
-
-          <!-- Glow effect on hover -->
-          <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full blur-sm bg-gradient-to-r from-cyan-light/40 via-white/40 to-cyan-dark/40"></div>
-
-          <!-- Shimmer effect -->
-          <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-
           <!-- Button text -->
           <span class="relative z-10 font-sans">{{ button.label }}</span>
 
           <!-- Focus ring for accessibility -->
-          <div class="absolute inset-0 rounded-full ring-2 ring-cyan-dark/0 group-focus-visible:ring-cyan-dark/50 transition-all duration-200"></div>
+          <div
+            class="absolute inset-0 rounded-lg ring-2 ring-gray-400/0 group-focus-visible:ring-gray-400/50 transition-all duration-200"
+          ></div>
         </a>
       </div>
     </div>
@@ -63,7 +62,7 @@ const isVisible = computed(() => !isLoading.value)
 </template>
 
 <style scoped>
-/* Enhance the glassmorphic effect with CSS */
+/* Clean navigation styling */
 nav {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -79,11 +78,6 @@ a {
 /* Custom focus styles for better accessibility */
 a:focus-visible {
   outline: none;
-}
-
-/* Subtle text shadow for better readability on light backgrounds */
-a span {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 /* Active state enhancement */

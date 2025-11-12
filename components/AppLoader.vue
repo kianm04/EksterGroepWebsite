@@ -36,14 +36,8 @@ watch(isLoading, (newValue) => {
         'opacity-0 scale-95': isExiting
       }"
     >
-      <!-- Background gradient -->
-      <div class="absolute inset-0 bg-gradient-to-br from-cyan-bg via-cyan-bg to-cyan-dark transition-opacity duration-700"></div>
-
-      <!-- Animated background particles/shapes (subtle) -->
-      <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-20 left-20 w-96 h-96 bg-cyan-light/20 rounded-full blur-3xl animate-float"></div>
-        <div class="absolute bottom-20 right-20 w-96 h-96 bg-cyan-dark/20 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
-      </div>
+      <!-- Clean white background -->
+      <div class="absolute inset-0 bg-[#F7F9F7] transition-opacity duration-700"></div>
 
       <!-- Main content container -->
       <div
@@ -55,22 +49,19 @@ watch(isLoading, (newValue) => {
         }"
         style="transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);"
       >
-        <!-- Glassmorphic card -->
-        <div class="relative backdrop-blur-lg bg-white/25 rounded-3xl p-12 shadow-2xl border border-white/30"
-             style="box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;">
+        <!-- Clean white card -->
+        <div class="relative bg-white rounded-lg p-12 border border-gray-200"
+             style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
 
-          <!-- Logo container with float animation -->
+          <!-- Logo container -->
           <div class="flex justify-center mb-8">
-            <div class="relative group">
-              <!-- Glow effect behind logo -->
-              <div class="absolute inset-0 bg-cyan-light/30 rounded-full blur-2xl scale-110 group-hover:scale-125 transition-transform duration-700"></div>
-
+            <div class="relative p-6 bg-white border border-gray-100 rounded-lg"
+                 style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
               <!-- Logo image -->
               <img
                 src="/images/loading-pagina-logo.png"
                 alt="Ekster Logo"
-                class="relative z-10 w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-contain animate-float drop-shadow-xl"
-                style="filter: drop-shadow(0 10px 20px rgba(130, 219, 197, 0.3));"
+                class="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-contain animate-float"
               />
             </div>
           </div>
@@ -78,41 +69,31 @@ watch(isLoading, (newValue) => {
           <!-- Loading bar container -->
           <div class="w-72 sm:w-80 lg:w-96 mx-auto">
             <!-- Loading bar track -->
-            <div class="relative h-2 bg-white/20 rounded-full overflow-hidden"
-                 style="box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);">
-
+            <div class="relative h-2 bg-gray-200 rounded-full overflow-hidden">
               <!-- Progress bar -->
               <div
-                class="absolute left-0 top-0 h-full bg-gradient-to-r from-cyan-light to-cyan-dark rounded-full transition-all duration-500 ease-out"
+                class="absolute left-0 top-0 h-full bg-gradient-to-r from-gray-600 to-gray-800 rounded-full transition-all duration-500 ease-out"
                 :style="{ width: progressBarWidth }"
-                style="box-shadow: 0 0 20px rgba(130, 219, 197, 0.6);"
               >
                 <!-- Shimmer effect -->
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer rounded-full"></div>
               </div>
-
-              <!-- Glow pulse on the progress edge -->
-              <div
-                class="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white/80 rounded-full blur-md transition-all duration-500"
-                :style="{ left: `calc(${progressBarWidth} - 8px)` }"
-                v-if="loadingProgress > 0 && loadingProgress < 100"
-              ></div>
             </div>
 
             <!-- Loading text and percentage -->
             <div class="mt-6 text-center">
-              <p class="text-white/90 text-sm sm:text-base font-medium tracking-wide">
+              <p class="text-gray-900 text-sm sm:text-base font-medium tracking-wide">
                 Loading 3D experience
               </p>
-              <p class="text-white/70 text-xs sm:text-sm mt-2 font-light tracking-wider">
+              <p class="text-gray-600 text-xs sm:text-sm mt-2 font-light tracking-wider">
                 {{ loadingProgress }}%
               </p>
             </div>
           </div>
 
-          <!-- Optional loading hints/tips (subtle) -->
+          <!-- Optional loading hints/tips -->
           <div class="mt-8 text-center" v-if="loadingProgress < 50">
-            <p class="text-white/50 text-xs tracking-wide animate-pulse">
+            <p class="text-gray-500 text-xs tracking-wide animate-pulse">
               Preparing immersive visualization
             </p>
           </div>
@@ -135,26 +116,18 @@ watch(isLoading, (newValue) => {
 }
 
 /* GPU acceleration for smooth animations */
-.backdrop-blur-lg {
+.relative {
   will-change: transform;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform: translateZ(0);
 }
 
-/* Ensure smooth rendering on mobile */
-@media (max-width: 640px) {
-  .backdrop-blur-lg {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-}
-
-/* High-performance shadow for better frame rates */
-@supports (backdrop-filter: blur(12px)) {
-  .backdrop-blur-lg {
-    backdrop-filter: blur(12px) saturate(1.2);
-    -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  }
+/* Ensure crisp text rendering */
+.text-gray-900,
+.text-gray-600,
+.text-gray-500 {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 </style>

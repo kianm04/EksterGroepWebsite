@@ -1,1 +1,1 @@
-export { default } from "file:///home/kian/ekster-website/node_modules/.pnpm/@nuxt+vite-builder@4.1.3_@types+node@24.8.1_eslint@9.38.0_jiti@2.6.1__magicast@0.3.5_op_90593782d59655d346e9a753dff3cbf1/node_modules/@nuxt/vite-builder/dist/runtime/client.manifest.mjs"
+export { default } from "file:///home/kianmatton/Desktop/EksterGroepWebsite/node_modules/.pnpm/@nuxt+vite-builder@4.1.3_@types+node@24.8.1_eslint@9.38.0_jiti@2.6.1__magicast@0.3.5_op_90593782d59655d346e9a753dff3cbf1/node_modules/@nuxt/vite-builder/dist/runtime/client.manifest.mjs"
