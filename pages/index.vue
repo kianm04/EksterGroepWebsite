@@ -1,16 +1,30 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
 import Navigation from "~/components/Navigation.vue";
-import ImageOverlay from "~/components/ImageOverlay.vue";
 
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
+const canvasElement = ref<HTMLCanvasElement | null>(null);
 
 const onCameraReady = (camera: THREE.PerspectiveCamera) => {
   activeCamera.value = camera;
 };
+
+// Set up canvas reference
+onMounted(() => {
+  // Find canvas element once TresCanvas is mounted
+  const findCanvas = () => {
+    const canvas = document.querySelector("canvas");
+    if (canvas) {
+      canvasElement.value = canvas as HTMLCanvasElement;
+    }
+  };
+
+  // Wait a bit for TresCanvas to create the canvas
+  setTimeout(findCanvas, 100);
+});
 </script>
 
 <template>
@@ -98,7 +112,10 @@ const onCameraReady = (camera: THREE.PerspectiveCamera) => {
           :camera="activeCamera || undefined"
           class="w-full h-full"
         >
-          <HouseModelRig @camera-ready="onCameraReady" />
+          <HouseModelRig
+            :canvas-element="canvasElement"
+            @camera-ready="onCameraReady"
+          />
         </TresCanvas>
       </div>
     </div>
