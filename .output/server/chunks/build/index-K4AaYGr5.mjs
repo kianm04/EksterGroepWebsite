@@ -22882,7 +22882,7 @@ const sk = {
   }
 });
 const sensitivity = 3e-3;
-const damping = 0.15;
+const damping = 0.08;
 const _sfc_main$2 = /* @__PURE__ */ defineComponent({
   __name: "HouseModelRig",
   __ssrInlineRender: true,
@@ -22895,21 +22895,38 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     const props = __props;
     const emit = __emit;
     const scene = computed(() => state.value?.scene ?? null);
-    const pathMover = shallowRef(null);
     const runtimeCamera = shallowRef(null);
     const lookAtTarget = shallowRef(null);
-    const cameraCircle = shallowRef(null);
-    const modelRotationWrapper = shallowRef(null);
-    const mixer = shallowRef(null);
+    const houseModel = shallowRef(null);
+    const sphericalCoords = ref({
+      radius: 45,
+      // Will be calculated from initial camera position
+      theta: 0,
+      // Horizontal angle (radians)
+      phi: Math.PI / 3
+      // Vertical angle (60 degrees from horizontal)
+    });
+    const targetSpherical = { theta: 0, phi: Math.PI / 3 };
+    const currentSpherical = { theta: 0, phi: Math.PI / 3 };
+    const isAutoRotating = ref(true);
+    const autoRotationSpeed = 2 * Math.PI / 90;
     const clock = markRaw(new Ki.Clock());
     let rafId = null;
     let sceneInitialized = false;
     const isInteracting = ref(false);
     const previousMousePosition = { x: 0, y: 0 };
-    const targetRotation = { x: 0, y: 0 };
-    const currentRotation = { x: 0, y: 0 };
+    const sphericalToCartesian = (radius, theta, phi) => {
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const z = radius * Math.sin(phi) * Math.sin(theta);
+      const y3 = radius * Math.cos(phi);
+      return new Ki.Vector3(x, y3, z);
+    };
+    const clampPhi = (phi) => {
+      return Math.max(0.05, Math.min(Math.PI / 2 - 0.05, phi));
+    };
     const handleMouseDown = (event) => {
       isInteracting.value = true;
+      isAutoRotating.value = false;
       previousMousePosition.x = event.clientX;
       previousMousePosition.y = event.clientY;
       if (props.canvasElement) {
@@ -22918,23 +22935,28 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     };
     const handleMouseUp = () => {
       isInteracting.value = false;
+      setTimeout(() => {
+        isAutoRotating.value = true;
+      }, 1e3);
       if (props.canvasElement) {
         props.canvasElement.style.cursor = "grab";
       }
     };
     const handleMouseMove = (event) => {
-      if (!isInteracting.value || !modelRotationWrapper.value) return;
+      if (!isInteracting.value) return;
       const deltaX = event.clientX - previousMousePosition.x;
       const deltaY = event.clientY - previousMousePosition.y;
-      targetRotation.y += deltaX * sensitivity;
-      targetRotation.x += deltaY * sensitivity;
-      targetRotation.x = Math.max(-Math.PI / 32, Math.min(Math.PI / 32, targetRotation.x));
-      console.log(targetRotation);
+      targetSpherical.theta -= deltaX * sensitivity;
+      targetSpherical.phi += deltaY * sensitivity;
+      targetSpherical.phi = clampPhi(targetSpherical.phi);
       previousMousePosition.x = event.clientX;
       previousMousePosition.y = event.clientY;
     };
     const handleMouseLeave = () => {
       isInteracting.value = false;
+      setTimeout(() => {
+        isAutoRotating.value = true;
+      }, 1e3);
       if (props.canvasElement) {
         props.canvasElement.style.cursor = "grab";
       }
@@ -22942,26 +22964,30 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
     const handleTouchStart = (event) => {
       if (event.touches.length !== 1) return;
       isInteracting.value = true;
+      isAutoRotating.value = false;
       const touch = event.touches[0];
       if (!touch) return;
       previousMousePosition.x = touch.clientX;
       previousMousePosition.y = touch.clientY;
     };
     const handleTouchMove = (event) => {
-      if (!isInteracting.value || !modelRotationWrapper.value || event.touches.length !== 1) return;
+      if (!isInteracting.value || event.touches.length !== 1) return;
       event.preventDefault();
       const touch = event.touches[0];
       if (!touch) return;
       const deltaX = touch.clientX - previousMousePosition.x;
       const deltaY = touch.clientY - previousMousePosition.y;
-      targetRotation.y += deltaX * sensitivity;
-      targetRotation.x += deltaY * sensitivity;
-      targetRotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, targetRotation.x));
+      targetSpherical.theta -= deltaX * sensitivity;
+      targetSpherical.phi += deltaY * sensitivity;
+      targetSpherical.phi = clampPhi(targetSpherical.phi);
       previousMousePosition.x = touch.clientX;
       previousMousePosition.y = touch.clientY;
     };
     const handleTouchEnd = () => {
       isInteracting.value = false;
+      setTimeout(() => {
+        isAutoRotating.value = true;
+      }, 1e3);
     };
     const initializeListeners = () => {
       if (!props.canvasElement) return;
@@ -22980,50 +23006,45 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       async (loadedScene) => {
         if (!loadedScene || sceneInitialized) return;
         sceneInitialized = true;
-        const wrapper = markRaw(new Ki.Group());
-        wrapper.name = "ModelRotationWrapper";
-        modelRotationWrapper.value = wrapper;
-        let houseModel = void 0;
+        let foundHouseModel = void 0;
+        let foundCamera = void 0;
         loadedScene.traverse((child) => {
           console.log(`Object: ${child.name}, Type: ${child.type}`);
-          if (child.name === "EmptyCameraRig") {
-            pathMover.value = markRaw(child);
-          } else if (child.name === "EmptyLookAtTarget") {
+          if (child.name === "EmptyLookAtTarget") {
             lookAtTarget.value = markRaw(child);
           } else if (child.name === "Camera") {
-            runtimeCamera.value = markRaw(child);
-          } else if (child.name === "CameraCircle") {
-            cameraCircle.value = markRaw(child);
+            foundCamera = child;
           } else if (child.name === "ok10b11291") {
-            houseModel = child;
+            foundHouseModel = child;
             console.log("Found house model:", child.name);
           }
         });
-        if (houseModel && modelRotationWrapper.value) {
-          const model = houseModel;
-          const parent = model.parent;
-          if (parent) {
-            parent.remove(model);
-            modelRotationWrapper.value.add(model);
-            parent.add(modelRotationWrapper.value);
-            emit("model-ready", modelRotationWrapper.value);
-          }
+        if (foundHouseModel) {
+          houseModel.value = markRaw(foundHouseModel);
+          emit("model-ready", foundHouseModel);
         }
-        if (pathMover.value && runtimeCamera.value) {
-          pathMover.value.add(runtimeCamera.value);
+        if (foundCamera && lookAtTarget.value) {
+          const camera = foundCamera;
+          runtimeCamera.value = markRaw(camera);
+          const targetPos = new Ki.Vector3();
+          lookAtTarget.value.getWorldPosition(targetPos);
+          const cameraPos = new Ki.Vector3();
+          camera.getWorldPosition(cameraPos);
+          const offset = cameraPos.clone().sub(targetPos);
+          sphericalCoords.value.theta = Math.atan2(offset.z, offset.x);
+          const yRatio = offset.y / sphericalCoords.value.radius;
+          const clampedRatio = Math.max(-1, Math.min(1, yRatio));
+          sphericalCoords.value.phi = Math.acos(clampedRatio);
+          targetSpherical.theta = sphericalCoords.value.theta;
+          targetSpherical.phi = sphericalCoords.value.phi;
+          currentSpherical.theta = sphericalCoords.value.theta;
+          currentSpherical.phi = sphericalCoords.value.phi;
+          if (camera.parent) {
+            camera.parent.remove(camera);
+          }
+          loadedScene.add(camera);
           emit("camera-ready", runtimeCamera.value);
           await nextTick();
-        }
-        if (state.value?.animations?.length) {
-          const _mixer = markRaw(new Ki.AnimationMixer(loadedScene));
-          _mixer.timeScale = 0.1;
-          console.log(state.value.animations);
-          state.value.animations.forEach((clip) => {
-            if (clip.name == "CircleMove.001") {
-              _mixer.clipAction(clip).play();
-            }
-          });
-          mixer.value = _mixer;
         }
         startLoop();
       },
@@ -23042,22 +23063,26 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       if (rafId !== null) return;
       rafId = requestAnimationFrame(loop);
     }
-    const tempVec = markRaw(new Ki.Vector3());
+    const targetWorldPos = markRaw(new Ki.Vector3());
     function loop() {
       const delta = clock.getDelta();
-      if (mixer.value) mixer.value.update(delta);
-      if (modelRotationWrapper.value) {
-        currentRotation.x += (targetRotation.x - currentRotation.x) * damping;
-        currentRotation.y += (targetRotation.y - currentRotation.y) * damping;
-        modelRotationWrapper.value.rotation.x = currentRotation.x;
-        modelRotationWrapper.value.rotation.y = currentRotation.y;
+      if (isAutoRotating.value && !isInteracting.value) {
+        targetSpherical.theta += autoRotationSpeed * delta;
       }
-      if (scene.value) scene.value.updateMatrixWorld(true);
+      currentSpherical.theta += (targetSpherical.theta - currentSpherical.theta) * damping;
+      currentSpherical.phi += (targetSpherical.phi - currentSpherical.phi) * damping;
       if (runtimeCamera.value && lookAtTarget.value) {
-        lookAtTarget.value.getWorldPosition(tempVec);
-        runtimeCamera.value.lookAt(tempVec);
+        lookAtTarget.value.getWorldPosition(targetWorldPos);
+        const cameraOffset = sphericalToCartesian(
+          sphericalCoords.value.radius,
+          currentSpherical.theta,
+          currentSpherical.phi
+        );
+        runtimeCamera.value.position.copy(targetWorldPos).add(cameraOffset);
+        runtimeCamera.value.lookAt(targetWorldPos);
         runtimeCamera.value.updateMatrixWorld();
       }
+      if (scene.value) scene.value.updateMatrixWorld(true);
       rafId = requestAnimationFrame(loop);
     }
     return (_ctx, _push, _parent, _attrs) => {
@@ -23170,4 +23195,4 @@ _sfc_main.setup = (props, ctx) => {
 };
 
 export { _sfc_main as default };
-//# sourceMappingURL=index-BMdkDFKg.mjs.map
+//# sourceMappingURL=index-K4AaYGr5.mjs.map

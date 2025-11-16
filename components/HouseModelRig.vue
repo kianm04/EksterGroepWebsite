@@ -15,39 +15,63 @@ const emit = defineEmits<{
 }>();
 
 const scene = computed(() => state.value?.scene ?? null);
-// Use shallowRef for Three.js objects to prevent deep reactivity
-const pathMover = shallowRef<THREE.Object3D | null>(null);
 
-// 🚨 start as null so the template does NOT try to attach too early
+// Camera and target references
 const runtimeCamera = shallowRef<THREE.PerspectiveCamera | null>(null);
-
 const lookAtTarget = shallowRef<THREE.Object3D | null>(null);
 
-const cameraCircle = shallowRef<THREE.Object3D | null>(null);
+// House model reference (no wrapper needed anymore)
+const houseModel = shallowRef<THREE.Object3D | null>(null);
 
-// Rotation wrapper for the house model - use shallowRef to avoid deep reactivity
-const modelRotationWrapper = shallowRef<THREE.Group | null>(null);
+// Spherical coordinate system for camera
+const sphericalCoords = ref({
+  radius: 45, // Will be calculated from initial camera position
+  theta: 0, // Horizontal angle (radians)
+  phi: Math.PI / 3, // Vertical angle (60 degrees from horizontal)
+});
 
-const mixer = shallowRef<THREE.AnimationMixer | null>(null);
+// Target and current spherical coords for smooth transitions
+const targetSpherical = { theta: 0, phi: Math.PI / 3 };
+const currentSpherical = { theta: 0, phi: Math.PI / 3 };
+
+// Auto-rotation state
+const isAutoRotating = ref(true);
+const autoRotationSpeed = (2 * Math.PI) / 90; // Full rotation in 90 seconds
+
+// Animation loop
 const clock = markRaw(new THREE.Clock());
 let rafId: number | null = null;
 
 // Track if scene is already initialized
 let sceneInitialized = false;
 
-// Mouse rotation state - use non-reactive values for rotation
+// Mouse interaction state
 const isInteracting = ref(false);
 const previousMousePosition = { x: 0, y: 0 };
-const targetRotation = { x: 0, y: 0 };
-const currentRotation = { x: 0, y: 0 };
 
 // Configuration
-const sensitivity = 0.003;
-const damping = 0.15;
+const sensitivity = 0.003; // Adjusted for smooth camera control
+const damping = 0.08; // Smoother transitions for fluid movement
+
+// Utility functions for spherical coordinates
+const sphericalToCartesian = (radius: number, theta: number, phi: number): THREE.Vector3 => {
+  // phi is angle from vertical axis (0 = top, π/2 = horizontal, π = bottom)
+  // theta is horizontal rotation angle
+  const x = radius * Math.sin(phi) * Math.cos(theta);
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+  return new THREE.Vector3(x, y, z);
+};
+
+const clampPhi = (phi: number): number => {
+  // Clamp phi between 0 (directly above) and π/2 (ground level)
+  return Math.max(0.05, Math.min(Math.PI / 2 - 0.05, phi));
+};
 
 // Mouse event handlers
 const handleMouseDown = (event: MouseEvent) => {
   isInteracting.value = true;
+  isAutoRotating.value = false; // Pause auto-rotation
   previousMousePosition.x = event.clientX;
   previousMousePosition.y = event.clientY;
 
@@ -59,25 +83,27 @@ const handleMouseDown = (event: MouseEvent) => {
 
 const handleMouseUp = () => {
   isInteracting.value = false;
+  setTimeout(() => {
+    isAutoRotating.value = true; // Resume auto-rotation after delay
+  }, 1000);
   if (props.canvasElement) {
     props.canvasElement.style.cursor = "grab";
   }
 };
 
 const handleMouseMove = (event: MouseEvent) => {
-  if (!isInteracting.value || !modelRotationWrapper.value) return;
+  if (!isInteracting.value) return;
 
   // Calculate mouse delta
   const deltaX = event.clientX - previousMousePosition.x;
   const deltaY = event.clientY - previousMousePosition.y;
 
-  // Update target rotation based on mouse movement
-  targetRotation.y += deltaX * sensitivity;
-  targetRotation.x += deltaY * sensitivity;
+  // Update spherical coordinates based on mouse movement
+  targetSpherical.theta -= deltaX * sensitivity; // Negative for natural rotation
+  targetSpherical.phi += deltaY * sensitivity;
 
-  // Clamp X rotation to prevent flipping
-  targetRotation.x = Math.max(-Math.PI / 32, Math.min(Math.PI / 32, targetRotation.x));
-  console.log(targetRotation)
+  // Clamp vertical angle
+  targetSpherical.phi = clampPhi(targetSpherical.phi);
 
   // Update previous mouse position
   previousMousePosition.x = event.clientX;
@@ -86,6 +112,9 @@ const handleMouseMove = (event: MouseEvent) => {
 
 const handleMouseLeave = () => {
   isInteracting.value = false;
+  setTimeout(() => {
+    isAutoRotating.value = true; // Resume auto-rotation after delay
+  }, 1000);
   if (props.canvasElement) {
     props.canvasElement.style.cursor = "grab";
   }
@@ -96,6 +125,7 @@ const handleTouchStart = (event: TouchEvent) => {
   if (event.touches.length !== 1) return;
 
   isInteracting.value = true;
+  isAutoRotating.value = false; // Pause auto-rotation
   const touch = event.touches[0];
   if (!touch) return;
 
@@ -104,7 +134,7 @@ const handleTouchStart = (event: TouchEvent) => {
 };
 
 const handleTouchMove = (event: TouchEvent) => {
-  if (!isInteracting.value || !modelRotationWrapper.value || event.touches.length !== 1) return;
+  if (!isInteracting.value || event.touches.length !== 1) return;
 
   event.preventDefault(); // Prevent scrolling
   const touch = event.touches[0];
@@ -114,12 +144,12 @@ const handleTouchMove = (event: TouchEvent) => {
   const deltaX = touch.clientX - previousMousePosition.x;
   const deltaY = touch.clientY - previousMousePosition.y;
 
-  // Update target rotation
-  targetRotation.y += deltaX * sensitivity;
-  targetRotation.x += deltaY * sensitivity;
+  // Update spherical coordinates
+  targetSpherical.theta -= deltaX * sensitivity;
+  targetSpherical.phi += deltaY * sensitivity;
 
-  // Clamp X rotation
-  targetRotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, targetRotation.x));
+  // Clamp vertical angle
+  targetSpherical.phi = clampPhi(targetSpherical.phi);
 
   // Update previous position
   previousMousePosition.x = touch.clientX;
@@ -128,6 +158,9 @@ const handleTouchMove = (event: TouchEvent) => {
 
 const handleTouchEnd = () => {
   isInteracting.value = false;
+  setTimeout(() => {
+    isAutoRotating.value = true; // Resume auto-rotation after delay
+  }, 1000);
 };
 
 // Initialize event listeners
@@ -173,78 +206,75 @@ watch(
     // Mark as initialized to prevent duplicate setup
     sceneInitialized = true;
 
-    // Create rotation wrapper for the house model - mark as raw to exclude from reactivity
-    const wrapper = markRaw(new THREE.Group());
-    wrapper.name = "ModelRotationWrapper";
-    modelRotationWrapper.value = wrapper;
-
-    let houseModel: THREE.Object3D | undefined = undefined;
+    let foundHouseModel: THREE.Object3D | undefined = undefined;
+    let foundCamera: THREE.PerspectiveCamera | undefined = undefined;
 
     // Find the specific objects we need
     loadedScene.traverse((child) => {
       console.log(`Object: ${child.name}, Type: ${child.type}`);
 
-      if (child.name === "EmptyCameraRig") {
-        pathMover.value = markRaw(child as THREE.Object3D);
-      } else if (child.name === "EmptyLookAtTarget") {
+      if (child.name === "EmptyLookAtTarget") {
         lookAtTarget.value = markRaw(child as THREE.Object3D);
       } else if (child.name === "Camera") {
-        runtimeCamera.value = markRaw(child as THREE.PerspectiveCamera);
-      } else if (child.name === "CameraCircle") {
-        cameraCircle.value = markRaw(child as THREE.Object3D);
+        foundCamera = child as THREE.PerspectiveCamera;
       } else if (child.name === "ok10b11291") {
-        // Found the house mesh! (name might vary)
-        houseModel = child as THREE.Object3D;
+        // Found the house mesh!
+        foundHouseModel = child as THREE.Object3D;
         console.log("Found house model:", child.name);
       }
     });
 
-    // Wrap the house model for rotation
-    if (houseModel && modelRotationWrapper.value) {
-      const model = houseModel as THREE.Object3D;
-      // Get the original parent
-      const parent = model.parent;
-
-      if (parent) {
-        // Remove from original parent and add to wrapper
-        parent.remove(model);
-        modelRotationWrapper.value.add(model);
-
-        // Add the wrapper back to the original parent
-        parent.add(modelRotationWrapper.value);
-
-        // Emit the rotation wrapper for external control
-        emit("model-ready", modelRotationWrapper.value);
-      }
+    // Store the house model reference
+    if (foundHouseModel) {
+      houseModel.value = markRaw(foundHouseModel);
+      emit("model-ready", foundHouseModel);
     }
 
-    // only now create the camera, when we actually have the rig
-    if (pathMover.value && runtimeCamera.value) {
-      // parent under rig so it follows the baked animation
-      pathMover.value.add(runtimeCamera.value);
+    // Set up the camera with new spherical positioning
+    if (foundCamera && lookAtTarget.value) {
+      const camera = foundCamera as THREE.PerspectiveCamera;
+      runtimeCamera.value = markRaw(camera);
 
-      // tell parent
+      // Calculate initial radius from camera's current position
+      const targetPos = new THREE.Vector3();
+      lookAtTarget.value.getWorldPosition(targetPos);
+      const cameraPos = new THREE.Vector3();
+      camera.getWorldPosition(cameraPos);
+
+      // const distance = cameraPos.distanceTo(targetPos);
+      // sphericalCoords.value.radius = distance > 0 ? distance : 15;
+
+      // Calculate initial spherical angles from camera position
+      const offset = cameraPos.clone().sub(targetPos);
+      sphericalCoords.value.theta = Math.atan2(offset.z, offset.x);
+
+      // Safely calculate phi with fallback
+      const yRatio = offset.y / sphericalCoords.value.radius;
+      const clampedRatio = Math.max(-1, Math.min(1, yRatio)); // Clamp to valid acos range
+      sphericalCoords.value.phi = Math.acos(clampedRatio);
+
+      // Initialize target and current to match
+      targetSpherical.theta = sphericalCoords.value.theta;
+      targetSpherical.phi = sphericalCoords.value.phi;
+      currentSpherical.theta = sphericalCoords.value.theta;
+      currentSpherical.phi = sphericalCoords.value.phi;
+
+      // Remove camera from any parent (no longer attached to rig)
+      if (camera.parent) {
+        camera.parent.remove(camera);
+      }
+
+      // Add camera directly to the scene
+      loadedScene.add(camera);
+
+      // Emit camera ready
       emit("camera-ready", runtimeCamera.value);
 
       // await one tick so Vue/Tres can mount scene first
       await nextTick();
     }
 
-    // set up animation
-    if (state.value?.animations?.length) {
-      const _mixer = markRaw(new THREE.AnimationMixer(loadedScene));
-      _mixer.timeScale = 0.1;
-      console.log(state.value.animations);
-
-      state.value.animations.forEach((clip) => {
-        if (clip.name == "CircleMove.001") {
-          _mixer.clipAction(clip).play();
-        }
-      });
-
-      mixer.value = _mixer;
-    }
-
+    // Start the render loop
     startLoop();
   },
   { immediate: true }
@@ -266,35 +296,41 @@ function startLoop() {
   rafId = requestAnimationFrame(loop);
 }
 
-const tempVec = markRaw(new THREE.Vector3());
+const targetWorldPos = markRaw(new THREE.Vector3());
 
 function loop() {
   const delta = clock.getDelta();
 
-  if (mixer.value) mixer.value.update(delta);
+  // Handle auto-rotation
+  if (isAutoRotating.value && !isInteracting.value) {
+    targetSpherical.theta += autoRotationSpeed * delta;
+  }
 
-  // Apply smooth rotation to the model
-  if (modelRotationWrapper.value) {
-    // Smoothly interpolate current rotation to target rotation
-    currentRotation.x += (targetRotation.x - currentRotation.x) * damping;
-    currentRotation.y += (targetRotation.y - currentRotation.y) * damping;
+  // Smooth interpolation of spherical coordinates
+  currentSpherical.theta += (targetSpherical.theta - currentSpherical.theta) * damping;
+  currentSpherical.phi += (targetSpherical.phi - currentSpherical.phi) * damping;
 
-    // Apply rotation to the wrapper
-    modelRotationWrapper.value.rotation.x = currentRotation.x;
-    modelRotationWrapper.value.rotation.y = currentRotation.y;
+  // Update camera position based on spherical coordinates
+  if (runtimeCamera.value && lookAtTarget.value) {
+    // Get look-at target world position
+    lookAtTarget.value.getWorldPosition(targetWorldPos);
+
+    // Calculate camera position from spherical coordinates
+    const cameraOffset = sphericalToCartesian(
+      sphericalCoords.value.radius,
+      currentSpherical.theta,
+      currentSpherical.phi
+    );
+
+    // Set camera position relative to look-at target
+    runtimeCamera.value.position.copy(targetWorldPos).add(cameraOffset);
+
+    // Make camera look at the target
+    runtimeCamera.value.lookAt(targetWorldPos);
+    runtimeCamera.value.updateMatrixWorld();
   }
 
   if (scene.value) scene.value.updateMatrixWorld(true);
-
-  // Camera look-at logic
-  if (runtimeCamera.value && lookAtTarget.value) {
-    // get target's world position
-    lookAtTarget.value.getWorldPosition(tempVec);
-    // make the camera look at it (this sets camera's local rotation
-    // relative to its parent, so it's fine that it's parented to the rig)
-    runtimeCamera.value.lookAt(tempVec);
-    runtimeCamera.value.updateMatrixWorld();
-  }
 
   rafId = requestAnimationFrame(loop);
 }
@@ -304,7 +340,6 @@ onUnmounted(() => {
     cancelAnimationFrame(rafId);
     rafId = null;
   }
-  if (mixer.value) mixer.value.stopAllAction();
   cleanupListeners();
 });
 </script>
