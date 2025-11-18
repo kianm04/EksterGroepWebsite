@@ -185,6 +185,7 @@ declare global {
   const useScriptVimeoPlayer: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs').useScriptVimeoPlayer
   const useScriptXPixel: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs').useScriptXPixel
   const useScriptYouTubePlayer: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs').useScriptYouTubePlayer
+  const useScrollCamera: typeof import('../../composables/useScrollCamera').useScrollCamera
   const useSeoMeta: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head').useSeoMeta
   const useServerHead: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head').useServerHead
   const useServerHeadSafe: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head').useServerHeadSafe
@@ -220,6 +221,9 @@ declare global {
   // @ts-ignore
   export type { UseModelLoaderOptions, UseModelLoaderReturn } from '../../composables/useModelLoader'
   import('../../composables/useModelLoader')
+  // @ts-ignore
+  export type { ScrollCameraConfig } from '../../composables/useScrollCamera'
+  import('../../composables/useScrollCamera')
   // @ts-ignore
   export type { TresObject } from '@tresjs/core'
   import('@tresjs/core')
@@ -412,6 +416,7 @@ declare module 'vue' {
     readonly useScriptVimeoPlayer: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs')['useScriptVimeoPlayer']>
     readonly useScriptXPixel: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs')['useScriptXPixel']>
     readonly useScriptYouTubePlayer: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/script-stubs')['useScriptYouTubePlayer']>
+    readonly useScrollCamera: UnwrapRef<typeof import('../../composables/useScrollCamera')['useScrollCamera']>
     readonly useSeoMeta: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head')['useSeoMeta']>
     readonly useServerHead: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head')['useServerHead']>
     readonly useServerHeadSafe: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/head')['useServerHeadSafe']>

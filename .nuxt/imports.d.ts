@@ -33,6 +33,7 @@ export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useAppLoader } from '../composables/useAppLoader';
 export { useModelLoader, UseModelLoaderOptions, UseModelLoaderReturn } from '../composables/useModelLoader';
 export { usePerformance } from '../composables/usePerformance';
+export { useScrollCamera, ScrollCameraConfig } from '../composables/useScrollCamera';
 export { useCameraManager, useGraph, useLoader, useLoop, useRendererManager, useTres, useTresContext, useTresContextProvider, extend as extendTres, TresObject } from '@tresjs/core';
 export { extractBindingPosition, hasSetter, pick, useAnimations, useEnvironment, useFBO, useFBX, useGLTF, useGLTFExporter, useIntersect, useMask, useProgress, useSVG, useSurfaceSampler, useTexture, useTextures, useVideoTexture } from '@tresjs/cientos';
 export { useControls, useControlsProvider } from '@tresjs/leches';

@@ -7,6 +7,7 @@ import WhiteCubePlaceholder from "./WhiteCubePlaceholder.vue";
 const props = defineProps<{
   canvasElement?: HTMLCanvasElement | null;
   loadModel?: boolean;
+  scrollControlledRadius?: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -40,10 +41,21 @@ const runtimeCamera = shallowRef<THREE.PerspectiveCamera | null>(null);
 const lookAtTarget = shallowRef<THREE.Object3D | null>(null);
 
 // Spherical coordinate system for camera
+const baseRadius = 45;
 const sphericalCoords = ref({
-  radius: 45,
+  radius: baseRadius,
   theta: 0,
   phi: Math.PI / 3,
+});
+
+// Computed effective radius (uses scroll control if provided, otherwise base)
+const effectiveRadius = computed(() => {
+  return props.scrollControlledRadius ?? sphericalCoords.value.radius;
+});
+
+// Check if scroll is controlling the camera
+const isScrollControlled = computed(() => {
+  return props.scrollControlledRadius !== null && props.scrollControlledRadius !== undefined;
 });
 
 // Target and current spherical coords for smooth transitions
@@ -271,7 +283,7 @@ const initializeCameraSystem = async () => {
     lookAtTarget.value = markRaw(target);
 
     // Initialize spherical coordinates based on default camera position
-    sphericalCoords.value.radius = 45;
+    sphericalCoords.value.radius = baseRadius;
     sphericalCoords.value.theta = Math.atan2(30, 30);
     sphericalCoords.value.phi = Math.PI / 3;
 
@@ -392,15 +404,31 @@ watch(
   }
 );
 
-// Watch for canvas element to initialize listeners
+// Watch for canvas element to initialize listeners (only if not scroll-controlled)
 watch(
   () => props.canvasElement,
   (canvas) => {
-    if (canvas) {
+    if (canvas && !isScrollControlled.value) {
       initializeListeners();
     }
   },
   { immediate: true }
+);
+
+// Watch for scroll control state changes to enable/disable mouse controls
+watch(
+  isScrollControlled,
+  (scrollControlled) => {
+    if (scrollControlled) {
+      // Scroll is taking control, disable mouse/touch
+      cleanupListeners();
+      isAutoRotating.value = false;
+    } else if (props.canvasElement) {
+      // Scroll released control, re-enable mouse/touch
+      initializeListeners();
+      isAutoRotating.value = true;
+    }
+  }
 );
 
 function startLoop() {
@@ -428,8 +456,9 @@ function loop() {
     lookAtTarget.value.getWorldPosition(targetWorldPos);
 
     // Calculate camera position from spherical coordinates
+    // Use effectiveRadius to support scroll control
     const cameraOffset = sphericalToCartesian(
-      sphericalCoords.value.radius,
+      effectiveRadius.value,
       currentSpherical.theta,
       currentSpherical.phi
     );

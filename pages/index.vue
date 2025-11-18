@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
@@ -8,6 +8,7 @@ import ModelSelector from "~/components/ModelSelector.vue";
 import Navigation from "~/components/Navigation.vue";
 import { MODELS, getModelById, STORAGE_KEYS } from "~/config/models";
 import type { ModelConfig } from "~/types/models";
+import { useScrollCamera } from "~/composables/useScrollCamera";
 
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
@@ -25,6 +26,23 @@ const loadedModelIds = ref<string[]>([]);
 const selectedModel = computed(() =>
   selectedModelId.value ? getModelById(selectedModelId.value) : null
 );
+
+// Scroll-based camera control
+const { scrollProgress, easedScrollProgress, cameraRadius, isScrolling } = useScrollCamera({
+  startRadius: 45,
+  endRadius: 20,
+});
+
+// Fade transitions based on eased scroll progress (quadratic)
+// Section 1: visible at 0%, fades out by 50%
+const section1Opacity = computed(() => {
+  return Math.max(0, 1 - (easedScrollProgress.value * 2));
+});
+
+// Section 2: starts fading in at 50%, fully visible at 100%
+const section2Opacity = computed(() => {
+  return Math.max(0, Math.min(1, (easedScrollProgress.value - 0.5) * 2));
+});
 
 // Check localStorage for cached state
 const checkCachedModelState = () => {
@@ -142,86 +160,123 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F7F9F7]">
+  <div class="bg-[#F7F9F7] snap-y snap-mandatory">
     <Navigation />
 
-    <!-- Main content grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-screen pt-16 lg:pt-20">
-      <!-- Left column - Content -->
-      <div class="flex items-center justify-center">
-        <div class="max-w-xl space-y-8 lg:space-y-12">
-          <!-- Header section -->
+    <!-- Main content grid with scroll sections -->
+    <div class="relative lg:grid lg:grid-cols-2 pt-16 lg:pt-20">
+      <!-- Left column - Stacked content sections -->
+      <div>
+        <!-- Section 1: Original content -->
+        <div
+          class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700"
+          :style="{ opacity: section1Opacity }"
+        >
+          <div class="max-w-xl space-y-8 lg:space-y-12">
+            <!-- Content section -->
+            <div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed">
+              <p class="text-base lg:text-lg font-light leading-relaxed">
+                De Ekstergroep doet beheer, exploitatie, renovatie en verbetering
+                van zowel monumentaal als gewoon vastgoed.
+              </p>
 
-          <!-- Content section -->
-          <div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed">
-            <p class="text-base lg:text-lg font-light leading-relaxed">
-              De Ekstergroep doet beheer, exploitatie, renovatie en verbetering
-              van zowel monumentaal als gewoon vastgoed.
-            </p>
+              <p class="text-sm lg:text-base leading-relaxed">
+                Wij leggen de focus op esthetiek, waarbij degelijkheid en
+                levensduur als vereisten worden meegenomen.
+              </p>
 
-            <p class="text-sm lg:text-base leading-relaxed">
-              Wij leggen de focus op esthetiek, waarbij degelijkheid en
-              levensduur als vereisten worden meegenomen.
-            </p>
+              <p class="text-sm lg:text-base leading-relaxed">
+                We werken samen als team en pakken jaarlijks een aantal
+                totalrenovaties op. Daarin begeleiden we de client van begin tot
+                eind. Samen met de architect zetten we de dromen op papier, die we
+                vervolgens door de constructeur laten doorrekenen. Na het
+                uitgeebreid bespreken en plannen van de uit te voeren taken komt
+                het team ten tonele en streven we er naar alles naar planning uit
+                te voeren.
+              </p>
+            </div>
 
-            <p class="text-sm lg:text-base leading-relaxed">
-              We werken samen als team en pakken jaarlijks een aantal
-              totalrenovaties op. Daarin begeleiden we de client van begin tot
-              eind. Samen met de architect zetten we de dromen op papier, die we
-              vervolgens door de constructeur laten doorrekenen. Na het
-              uitgeebreid bespreken en plannen van de uit te voeren taken komt
-              het team ten tonele en streven we er naar alles naar planning uit
-              te voeren.
-            </p>
-          </div>
-
-          <!-- Call to action -->
-          <div class="space-y-3 lg:space-y-4 pt-4 lg:pt-6">
-            <p class="text-sm lg:text-base leading-relaxed text-gray-700">
-              Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw
-              te brengen?
-            </p>
-            <div
-              class="flex flex-col sm:inline-flex sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0 group"
-            >
-              <span class="text-sm text-gray-600">Neem contact op via</span>
-              <a
-                href="mailto:info@ekstergroep.nl"
-                class="inline-flex items-center px-3 lg:px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:border-gray-400 hover:shadow-md transition-all duration-200 hover:scale-102 text-sm"
-                style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)"
+            <!-- Call to action -->
+            <div class="space-y-3 lg:space-y-4 pt-4 lg:pt-6">
+              <p class="text-sm lg:text-base leading-relaxed text-gray-700">
+                Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw
+                te brengen?
+              </p>
+              <div
+                class="flex flex-col sm:inline-flex sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0 group"
               >
-                info@ekstergroep.nl
-              </a>
+                <span class="text-sm text-gray-600">Neem contact op via</span>
+                <a
+                  href="mailto:info@ekstergroep.nl"
+                  class="inline-flex items-center px-3 lg:px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:border-gray-400 hover:shadow-md transition-all duration-200 hover:scale-102 text-sm"
+                  style="box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)"
+                >
+                  info@ekstergroep.nl
+                </a>
+              </div>
+            </div>
+
+            <!-- Scroll indicator -->
+            <div class="pt-6 lg:pt-8 border-t border-gray-200 relative">
+              <div
+                class="text-xs text-gray-500 tracking-wider uppercase font-medium flex items-center space-x-2"
+              >
+                <span>Start scrolling to explore</span>
+                <div class="flex space-x-1">
+                  <div
+                    class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
+                  ></div>
+                  <div
+                    class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
+                    style="animation-delay: 0.2s"
+                  ></div>
+                  <div
+                    class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
+                    style="animation-delay: 0.4s"
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Scroll indicator -->
-          <div class="pt-6 lg:pt-8 border-t border-gray-200 relative">
-            <div
-              class="text-xs text-gray-500 tracking-wider uppercase font-medium flex items-center space-x-2"
-            >
-              <span>Start scrolling to explore</span>
-              <div class="flex space-x-1">
-                <div
-                  class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
-                ></div>
-                <div
-                  class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
-                  style="animation-delay: 0.2s"
-                ></div>
-                <div
-                  class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"
-                  style="animation-delay: 0.4s"
-                ></div>
-              </div>
+        <!-- Section 2: Lorem ipsum content -->
+        <div
+          class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700"
+          :style="{ opacity: section2Opacity }"
+        >
+          <div class="max-w-xl space-y-8 lg:space-y-12">
+            <div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed">
+              <h2 class="text-2xl lg:text-3xl font-light text-gray-900">
+                Discover Our Craftsmanship
+              </h2>
+
+              <p class="text-base lg:text-lg font-light leading-relaxed">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              </p>
+
+              <p class="text-sm lg:text-base leading-relaxed">
+                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+                pariatur.
+              </p>
+
+              <p class="text-sm lg:text-base leading-relaxed">
+                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                officia deserunt mollit anim id est laborum. Sed ut perspiciatis
+                unde omnis iste natus error sit voluptatem accusantium doloremque
+                laudantium.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right column - 3D Model -->
+      <!-- Right column - 3D Model (sticky on desktop, normal on mobile) -->
       <div
-        class="relative h-96 sm:h-[500px] lg:h-auto lg:min-h-screen flex flex-col"
+        class="relative h-screen lg:sticky lg:top-0 flex flex-col snap-start"
       >
         <!-- 3D Canvas -->
         <div class="flex-1 relative">
@@ -237,6 +292,7 @@ onMounted(() => {
             <HouseModelRig
               :canvas-element="canvasElement"
               :load-model="showModel"
+              :scroll-controlled-radius="cameraRadius"
               @camera-ready="onCameraReady"
               @model-ready="
                 (model) => console.log('[Index] Model ready:', model)
