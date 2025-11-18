@@ -3,25 +3,38 @@ import { ref, onMounted, watch } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
-import HouseModelRigLazy from "~/components/HouseModelRigLazy.vue";
-import WhiteCubePlaceholder from "~/components/WhiteCubePlaceholder.vue";
+import ModelPlaceholder from "~/components/ModelPlaceholder.vue";
+import ModelSelector from "~/components/ModelSelector.vue";
 import Navigation from "~/components/Navigation.vue";
+import { MODELS, getModelById, STORAGE_KEYS } from "~/config/models";
+import type { ModelConfig } from "~/types/models";
 
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 
-// Model loading state
+// Model loading state (backward compatibility with single model)
 const showModel = ref(false);
 const isLoadingModel = ref(false);
 const modelLoaded = ref(false);
+const userInitiatedLoad = ref(false); // Track if user clicked the load button
+
+// Multi-model state
+const selectedModelId = ref<string | null>(null);
+const loadingModelId = ref<string | null>(null);
+const loadedModelIds = ref<string[]>([]);
+const selectedModel = computed(() =>
+  selectedModelId.value ? getModelById(selectedModelId.value) : null
+);
 
 // Check localStorage for cached state
 const checkCachedModelState = () => {
   if (typeof window !== "undefined") {
     const cached = localStorage.getItem("ekster_model_loaded");
-    if (cached === "true") {
+    const userInitiated = localStorage.getItem("ekster_user_initiated");
+    if (cached === "true" && userInitiated === "true") {
       showModel.value = true;
       modelLoaded.value = true;
+      userInitiatedLoad.value = true;
     }
   }
 };
@@ -45,15 +58,55 @@ const onLoadingComplete = () => {
   isLoadingModel.value = false;
   modelLoaded.value = true;
   console.log("[Index] modelLoaded value:", modelLoaded.value);
-  // Save to localStorage
-  if (typeof window !== "undefined") {
+
+  // Update multi-model state
+  if (loadingModelId.value) {
+    loadedModelIds.value.push(loadingModelId.value);
+    loadingModelId.value = null;
+  }
+
+  // Save to localStorage only if user initiated the load
+  if (typeof window !== "undefined" && userInitiatedLoad.value) {
     localStorage.setItem("ekster_model_loaded", "true");
+    localStorage.setItem("ekster_user_initiated", "true");
   }
 };
 
 const loadHouseModel = () => {
-  if (!isLoadingModel.value && !modelLoaded.value) {
+  if (!isLoadingModel.value && !userInitiatedLoad.value) {
+    userInitiatedLoad.value = true;
     showModel.value = true;
+  }
+};
+
+// Handler for model selection (switching between already loaded models)
+const handleSelectModel = (modelId: string) => {
+  selectedModelId.value = modelId;
+  // Update backward compatibility flags
+  if (modelId === 'house-circle-rig') {
+    showModel.value = true;
+  }
+};
+
+// Handler for loading a new model
+const handleLoadModel = (modelId: string) => {
+  if (loadingModelId.value) return; // Already loading something
+
+  const model = getModelById(modelId);
+  if (!model) return;
+
+  // For the main house model, use existing logic
+  if (modelId === 'house-circle-rig') {
+    userInitiatedLoad.value = true;
+    showModel.value = true;
+    selectedModelId.value = modelId;
+    loadingModelId.value = modelId;
+  } else {
+    // Future models will be handled here
+    selectedModelId.value = modelId;
+    loadingModelId.value = modelId;
+    // Note: Actual loading logic for other models to be implemented
+    // when we have ModelRig component
   }
 };
 
@@ -178,20 +231,16 @@ onMounted(() => {
             class="w-full h-full"
           >
             <!-- Show white cube when model is not loaded -->
-            <WhiteCubePlaceholder v-if="!modelLoaded" :visible="!modelLoaded" />
+            <!-- <WhiteCubePlaceholder v-if="!modelLoaded" :visible="!modelLoaded" /> -->
 
-            <!-- Camera-only rig when no model loaded -->
+            <!-- Consolidated HouseModelRig component handles both camera-only and model loading -->
             <HouseModelRig
-              v-if="!showModel"
               :canvas-element="canvasElement"
+              :load-model="showModel"
               @camera-ready="onCameraReady"
-            />
-
-            <!-- House model with loading when requested -->
-            <HouseModelRigLazy
-              v-else
-              :canvas-element="canvasElement"
-              @camera-ready="onCameraReady"
+              @model-ready="
+                (model) => console.log('[Index] Model ready:', model)
+              "
               @loading-started="onLoadingStarted"
               @loading-progress="onLoadingProgress"
               @loading-complete="onLoadingComplete"
@@ -199,44 +248,22 @@ onMounted(() => {
           </TresCanvas>
         </div>
 
-        <!-- Load button -->
+        <!-- Model selector -->
         <div
-          v-if="!modelLoaded"
+          v-if="!userInitiatedLoad"
           class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
         >
-          <button
-            @click="loadHouseModel"
-            :disabled="isLoadingModel"
-            class="px-6 py-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:scale-102 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
-            style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
-          >
-            <span v-if="!isLoadingModel" class="text-gray-900 font-medium"
-              >Laad huis</span
-            >
-            <span v-else class="flex items-center gap-2 text-gray-600">
-              <svg
-                class="animate-spin h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Laden...
-            </span>
-          </button>
+          <ModelSelector
+            :models="MODELS"
+            :selected-model-id="selectedModelId"
+            :loading-model-id="loadingModelId"
+            :loaded-model-ids="loadedModelIds"
+            :is-any-loading="isLoadingModel"
+            variant="horizontal"
+            :show-file-sizes="true"
+            @select-model="handleSelectModel"
+            @load-model="handleLoadModel"
+          />
         </div>
       </div>
     </div>

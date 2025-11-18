@@ -7,12 +7,14 @@ You are building a **premium architectural visualization website** with the desi
 ### Core Visual Principles
 
 1. **Clean Minimalism & Structure**
+
    - Use crisp white backgrounds with RAL9010 (#F7F9F7) as the primary color
    - Eliminate all transparency and glass effects
    - Create depth through subtle shadows and clean geometric borders
    - Apply single, purposeful shadows: `box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)`
 
 2. **Subtle Interactions**
+
    - Hover states should have 1-2 clean visual changes (subtle scale, background, or shadow)
    - Use smooth transforms: `scale(1.02)` for subtle elevation
    - Transition durations: 200-300ms with `ease-out`
@@ -20,12 +22,14 @@ You are building a **premium architectural visualization website** with the desi
    - Use minimal stagger animations (50-100ms delays) sparingly
 
 3. **Typography & Spacing**
+
    - Use the defined font stack: `-apple-system, BlinkMacSystemFont, Inter, Segoe UI`
    - Apply `tracking-wide` sparingly for major headings only
    - Avoid text-shadows completely - rely on color contrast for readability
    - Maintain generous whitespace with clean, architectural spacing
 
 4. **Color Palette**
+
    - Primary background: RAL9010 `#F7F9F7` (pure white)
    - Secondary background: Pure white `#FFFFFF`
    - Accent elements: Light gray `#F5F5F5` for subtle differentiation
@@ -94,17 +98,20 @@ nuxt.config.ts       # SSR/prerender rules, modules
 ### SEO Best Practices
 
 1. **Semantic HTML**
+
    - Use proper heading hierarchy (h1, h2, h3)
    - Semantic tags: `<nav>`, `<main>`, `<article>`, `<section>`
    - Alt text for all images
    - Descriptive link text
 
 2. **Pre-rendering**
+
    - Static pages are pre-rendered (see `nuxt.config.ts` routeRules)
    - 3D-heavy routes use `ssr: false` for performance
    - Meta tags in Vue components using `useHead()` composable
 
 3. **Performance Targets**
+
    - First Contentful Paint (FCP): < 1.5s
    - Largest Contentful Paint (LCP): < 2.5s
    - Total Blocking Time (TBT): < 200ms
@@ -157,6 +164,7 @@ Use the custom animations defined in `tailwind.config.ts`:
 - `animate-glow`: Pulsing glow effect
 
 **Staggered Animations Example**:
+
 ```vue
 <div
   v-for="(item, index) in items"
@@ -178,10 +186,11 @@ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 ```
 
 For clean borders:
+
 ```css
 /* Clean border styling */
 .bordered-element {
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
 }
 ```
@@ -193,6 +202,7 @@ For clean borders:
 ### TresJS Component Patterns
 
 **HouseModel.vue** demonstrates best practices:
+
 - Extract camera settings from GLTF scene
 - Use `watch` with `immediate: true` for reactive loading
 - Computed properties for scene traversal
@@ -209,15 +219,15 @@ For clean borders:
 
 ```typescript
 // Draco compression for models
-const { state } = useGLTF('/models/model.glb', { draco: true })
+const { state } = useGLTF("/models/model.glb", { draco: true });
 
 // Dispose of geometries/materials when components unmount
 onUnmounted(() => {
   scene.traverse((object) => {
-    if (object.geometry) object.geometry.dispose()
-    if (object.material) object.material.dispose()
-  })
-})
+    if (object.geometry) object.geometry.dispose();
+    if (object.material) object.material.dispose();
+  });
+});
 ```
 
 ---
@@ -231,7 +241,7 @@ onUnmounted(() => {
 - Avoid `any` - use `unknown` or proper types
 - Type Three.js objects explicitly:
   ```typescript
-  const camera: THREE.PerspectiveCamera | null = null
+  const camera: THREE.PerspectiveCamera | null = null;
   ```
 
 ### Vue Composition API
@@ -271,6 +281,7 @@ onUnmounted(() => {
 ### Commit Messages
 
 Follow conventional commits:
+
 ```
 feat: add clean white navigation component
 fix: resolve camera positioning in HouseModel
@@ -282,6 +293,7 @@ docs: update CLAUDE.md with SEO guidelines
 ### Pull Request Checklist
 
 Before creating a PR:
+
 - [ ] All animations run smoothly at 60fps
 - [ ] Component has hover, focus, and active states
 - [ ] Text content is in HTML (not WebGL)
@@ -296,12 +308,14 @@ Before creating a PR:
 ## Design Inspiration & References
 
 When building components, think:
+
 - **Architectural minimalism**: Tadao Ando, John Pawson, Dieter Rams design principles
 - **Professional software**: AutoCAD, Rhino, SketchUp Pro interface design
 - **Clean interactions**: Apple.com, Stripe, Linear clean aesthetics
 - **Architectural websites**: Foster + Partners, Zaha Hadid Architects, BIG
 
 ### Resources
+
 - [TresJS Documentation](https://tresjs.org/)
 - [Three.js Examples](https://threejs.org/examples/)
 - [Tailwind CSS Docs](https://tailwindcss.com/)
@@ -316,7 +330,9 @@ When building components, think:
 ```vue
 <template>
   <div class="fixed inset-0 z-40 pointer-events-none">
-    <div class="pointer-events-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+    <div
+      class="pointer-events-auto bg-white border border-gray-200 rounded-lg shadow-lg"
+    >
       <!-- Your content with SEO-friendly HTML -->
     </div>
   </div>
@@ -338,6 +354,7 @@ When building components, think:
 ## Final Notes
 
 **Quality over speed**. Focus on architectural precision and clean details:
+
 - The perfect white balance
 - The subtle shadow depth
 - The clean geometric alignment
@@ -348,3 +365,6 @@ These details transform a good website into a **professional architectural showc
 **Remember**: Every pixel matters. Every line should be intentional. Every interaction should feel precise.
 
 Build something timeless and professional. 🏛️
+
+DEVELOPMENT RULES:
+Leave the testing of the website to the user, never run 'npm run dev' or attempt to visit the website using curl.

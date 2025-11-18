@@ -1,1 +1,1 @@
-{"id":"dev","timestamp":1763460603275,"matcher":{"static":{"/":{"prerender":true}},"wildcard":{"/services":{"prerender":true},"/case-studies":{"prerender":true}},"dynamic":{}},"prerendered":[]}
+{"id":"dev","timestamp":1763467326988,"matcher":{"static":{"/":{"prerender":true}},"wildcard":{"/services":{"prerender":true},"/case-studies":{"prerender":true}},"dynamic":{}},"prerendered":[]}

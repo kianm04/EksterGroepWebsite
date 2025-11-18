@@ -1,14 +1,39 @@
 <script setup lang="ts">
 import { computed, onUnmounted, onMounted, ref, shallowRef, watch, nextTick, markRaw } from "vue";
 import * as THREE from "three";
+import { useGLTF } from "@tresjs/cientos";
+import WhiteCubePlaceholder from "./WhiteCubePlaceholder.vue";
 
 const props = defineProps<{
   canvasElement?: HTMLCanvasElement | null;
+  loadModel?: boolean;
 }>();
 
 const emit = defineEmits<{
   "camera-ready": [camera: THREE.PerspectiveCamera];
+  "model-ready": [model: THREE.Object3D];
+  "loading-started": [];
+  "loading-progress": [progress: number];
+  "loading-complete": [];
 }>();
+
+// Always load the GLTF model (Vue 3 Composition API requirement)
+// The model will start downloading after a delay
+const { state, progress } = useGLTF("/models/ok12b_circle_rig.glb", {
+  draco: true
+});
+
+// Track loading state
+const isModelLoading = ref(false);
+const hasEmittedComplete = ref(false);
+
+// House model reference (only used when loading model)
+const houseModel = shallowRef<THREE.Object3D | null>(null);
+
+// Fade transition state
+const cubeOpacity = ref(1);
+const modelOpacity = ref(0);
+const showHouseModel = computed(() => props.loadModel && hasEmittedComplete.value);
 
 // Camera and target references
 const runtimeCamera = shallowRef<THREE.PerspectiveCamera | null>(null);
@@ -35,6 +60,62 @@ let rafId: number | null = null;
 
 // Track if scene is already initialized
 let sceneInitialized = false;
+
+// Computed property for the GLTF scene
+const scene = computed(() => state.value?.scene ?? null);
+
+// Watch progress for loading updates (always fire events)
+watch(progress, (newProgress) => {
+  console.log("[HouseModelRig] Progress:", newProgress);
+
+  if (newProgress > 0 && !isModelLoading.value) {
+    console.log("[HouseModelRig] Starting load");
+    isModelLoading.value = true;
+    emit("loading-started");
+  }
+
+  if (newProgress > 0 && newProgress < 1) {
+    const percentage = Math.round(newProgress * 100);
+    console.log(`[HouseModelRig] Progress: ${percentage}%`);
+    emit("loading-progress", percentage);
+  }
+});
+
+// Watch for scene to be loaded (always emit complete event)
+watch(
+  scene,
+  (loadedScene) => {
+    console.log(
+      "[HouseModelRig] Scene changed:",
+      loadedScene ? "loaded" : "null"
+    );
+
+    if (loadedScene && !hasEmittedComplete.value) {
+      console.log(
+        "[HouseModelRig] Scene is loaded! Emitting loading-complete event"
+      );
+      hasEmittedComplete.value = true;
+      isModelLoading.value = false;
+      emit("loading-complete");
+    }
+  },
+  { immediate: true }
+);
+
+// Watch for transition between cube and house model
+watch(showHouseModel, (shouldShow) => {
+  if (shouldShow) {
+    // Start fade transition - using simple animation approach
+    const fadeInterval = setInterval(() => {
+      cubeOpacity.value = Math.max(0, cubeOpacity.value - 0.05);
+      modelOpacity.value = Math.min(1, modelOpacity.value + 0.05);
+
+      if (cubeOpacity.value <= 0 && modelOpacity.value >= 1) {
+        clearInterval(fadeInterval);
+      }
+    }, 16); // ~60fps
+  }
+});
 
 // Mouse interaction state
 const isInteracting = ref(false);
@@ -178,37 +259,138 @@ const initializeCameraSystem = async () => {
   if (sceneInitialized) return;
   sceneInitialized = true;
 
-  // Create a default camera
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
-  camera.position.set(30, 20, 30);
-  runtimeCamera.value = markRaw(camera);
+  // If we're not loading a model, or model isn't ready yet, create default camera
+  if (!props.loadModel || !runtimeCamera.value) {
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+    camera.position.set(30, 20, 30);
+    runtimeCamera.value = markRaw(camera);
 
-  // Create a default look-at target at origin
-  const target = new THREE.Object3D();
-  target.position.set(0, 0, 0);
-  lookAtTarget.value = markRaw(target);
+    // Create a default look-at target at origin
+    const target = new THREE.Object3D();
+    target.position.set(0, 0, 0);
+    lookAtTarget.value = markRaw(target);
 
-  // Initialize spherical coordinates based on default camera position
-  sphericalCoords.value.radius = 45;
-  sphericalCoords.value.theta = Math.atan2(30, 30);
-  sphericalCoords.value.phi = Math.PI / 3;
+    // Initialize spherical coordinates based on default camera position
+    sphericalCoords.value.radius = 45;
+    sphericalCoords.value.theta = Math.atan2(30, 30);
+    sphericalCoords.value.phi = Math.PI / 3;
 
-  targetSpherical.theta = sphericalCoords.value.theta;
-  targetSpherical.phi = sphericalCoords.value.phi;
-  currentSpherical.theta = sphericalCoords.value.theta;
-  currentSpherical.phi = sphericalCoords.value.phi;
+    targetSpherical.theta = sphericalCoords.value.theta;
+    targetSpherical.phi = sphericalCoords.value.phi;
+    currentSpherical.theta = sphericalCoords.value.theta;
+    currentSpherical.phi = sphericalCoords.value.phi;
 
-  emit("camera-ready", runtimeCamera.value);
-  await nextTick();
+    emit("camera-ready", runtimeCamera.value);
+    await nextTick();
+  }
 
   // Start the render loop
   startLoop();
 };
 
+// Function to process the loaded scene
+const processScene = async (loadedScene: THREE.Object3D) => {
+  let foundHouseModel: THREE.Object3D | undefined = undefined;
+  let foundCamera: THREE.PerspectiveCamera | undefined = undefined;
+  let foundLookAtTarget: THREE.Object3D | undefined = undefined;
+
+  // Find the specific objects we need
+  loadedScene.traverse((child) => {
+    console.log(`Object: ${child.name}, Type: ${child.type}`);
+
+    if (child.name === "EmptyLookAtTarget") {
+      foundLookAtTarget = child as THREE.Object3D;
+    } else if (child.name === "Camera") {
+      foundCamera = child as THREE.PerspectiveCamera;
+    } else if (child.name === "ok10b11291") {
+      // Found the house mesh!
+      foundHouseModel = child as THREE.Object3D;
+      console.log("Found house model:", child.name);
+    }
+  });
+
+  // Store the house model reference
+  if (foundHouseModel) {
+    houseModel.value = markRaw(foundHouseModel);
+    emit("model-ready", foundHouseModel);
+  }
+
+  // Update look-at target if found in scene
+  if (foundLookAtTarget) {
+    lookAtTarget.value = markRaw(foundLookAtTarget);
+  }
+
+  // Set up the camera with new spherical positioning
+  if (foundCamera && lookAtTarget.value) {
+    const camera = foundCamera as THREE.PerspectiveCamera;
+    runtimeCamera.value = markRaw(camera);
+
+    // Calculate initial radius from camera's current position
+    const targetPos = new THREE.Vector3();
+    lookAtTarget.value.getWorldPosition(targetPos);
+    const cameraPos = new THREE.Vector3();
+    camera.getWorldPosition(cameraPos);
+
+    // Calculate initial spherical angles from camera position
+    const offset = cameraPos.clone().sub(targetPos);
+    sphericalCoords.value.theta = Math.atan2(offset.z, offset.x);
+
+    // Safely calculate phi with fallback
+    const yRatio = offset.y / sphericalCoords.value.radius;
+    const clampedRatio = Math.max(-1, Math.min(1, yRatio)); // Clamp to valid acos range
+    sphericalCoords.value.phi = Math.acos(clampedRatio);
+
+    // Initialize target and current to match
+    targetSpherical.theta = sphericalCoords.value.theta;
+    targetSpherical.phi = sphericalCoords.value.phi;
+    currentSpherical.theta = sphericalCoords.value.theta;
+    currentSpherical.phi = sphericalCoords.value.phi;
+
+    // Remove camera from any parent (no longer attached to rig)
+    if (camera.parent) {
+      camera.parent.remove(camera);
+    }
+
+    // Add camera directly to the scene
+    loadedScene.add(camera);
+
+    // Emit camera ready
+    emit("camera-ready", runtimeCamera.value);
+
+    // await one tick so Vue/Tres can mount scene first
+    await nextTick();
+  }
+};
+
+// Watch for scene changes to extract camera and model from GLTF
+watch(
+  scene,
+  async (loadedScene) => {
+    if (!loadedScene) return;
+
+    // Don't process the scene until user initiates load
+    if (!props.loadModel) return;
+
+    await processScene(loadedScene);
+  },
+  { immediate: true }
+);
+
 // Initialize camera system on mount
 onMounted(() => {
   initializeCameraSystem();
 });
+
+// Watch for loadModel prop changes to process scene when user initiates load
+watch(
+  () => props.loadModel,
+  (shouldLoad) => {
+    if (shouldLoad && scene.value) {
+      // Re-trigger scene processing when user initiates load
+      processScene(scene.value);
+    }
+  }
+);
 
 // Watch for canvas element to initialize listeners
 watch(
@@ -273,7 +455,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Just the camera, no model -->
+  <!-- White cube placeholder with fade transition -->
+  <WhiteCubePlaceholder
+    v-if="cubeOpacity > 0"
+    :opacity="cubeOpacity"
+  />
+
+  <!-- House model - only show when button clicked and model is loaded -->
+  <primitive
+    v-if="scene && showHouseModel"
+    :object="scene"
+  />
+
+  <!-- Always render the camera -->
   <primitive v-if="runtimeCamera" :object="runtimeCamera" attach="camera" />
 
   <TresAmbientLight :intensity="3" />

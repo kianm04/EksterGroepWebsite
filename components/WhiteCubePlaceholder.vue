@@ -2,10 +2,12 @@
 // Props
 interface Props {
   visible?: boolean
+  opacity?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: true
+  visible: true,
+  opacity: 1
 })
 </script>
 
@@ -18,13 +20,15 @@ const props = withDefaults(defineProps<Props>(), {
     <!-- Box geometry with appropriate size to match house scale -->
     <TresBoxGeometry :args="[15, 12, 15]" />
 
-    <!-- Clean white material with subtle shading -->
+    <!-- Clean white material with subtle shading and opacity support -->
     <TresMeshStandardMaterial
       :color="'#FFFFFF'"
       :roughness="0.8"
       :metalness="0.1"
       :emissive="'#FFFFFF'"
       :emissiveIntensity="0.02"
+      :transparent="true"
+      :opacity="props.opacity"
     />
   </TresMesh>
 </template>
