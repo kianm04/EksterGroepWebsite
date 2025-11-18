@@ -8,6 +8,7 @@ const props = defineProps<{
   canvasElement?: HTMLCanvasElement | null;
   loadModel?: boolean;
   scrollControlledRadius?: number | null;
+  isScrollingActive?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -53,9 +54,9 @@ const effectiveRadius = computed(() => {
   return props.scrollControlledRadius ?? sphericalCoords.value.radius;
 });
 
-// Check if scroll is controlling the camera
+// Check if scroll is actively controlling the camera (user is currently scrolling)
 const isScrollControlled = computed(() => {
-  return props.scrollControlledRadius !== null && props.scrollControlledRadius !== undefined;
+  return props.isScrollingActive ?? false;
 });
 
 // Target and current spherical coords for smooth transitions

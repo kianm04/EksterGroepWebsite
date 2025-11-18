@@ -293,6 +293,7 @@ onMounted(() => {
               :canvas-element="canvasElement"
               :load-model="showModel"
               :scroll-controlled-radius="cameraRadius"
+              :is-scrolling-active="isScrolling"
               @camera-ready="onCameraReady"
               @model-ready="
                 (model) => console.log('[Index] Model ready:', model)
