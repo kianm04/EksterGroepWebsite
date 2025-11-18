@@ -1,19 +1,80 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
+import HouseModelRigLazy from "~/components/HouseModelRigLazy.vue";
+import WhiteCubePlaceholder from "~/components/WhiteCubePlaceholder.vue";
 import Navigation from "~/components/Navigation.vue";
 
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 
+// Model loading state
+const showModel = ref(false);
+const isLoadingModel = ref(false);
+const modelLoaded = ref(false);
+
+// Check localStorage for cached state
+const checkCachedModelState = () => {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("ekster_model_loaded");
+    if (cached === "true") {
+      showModel.value = true;
+      modelLoaded.value = true;
+    }
+  }
+};
+
 const onCameraReady = (camera: THREE.PerspectiveCamera) => {
   activeCamera.value = camera;
 };
 
+const onLoadingStarted = () => {
+  console.log("[Index] Loading started");
+  isLoadingModel.value = true;
+};
+
+const onLoadingProgress = (progress: number) => {
+  // Could display progress if needed
+  console.log(`[Index] Loading progress: ${progress}%`);
+};
+
+const onLoadingComplete = () => {
+  console.log("[Index] Loading complete! Setting modelLoaded = true");
+  isLoadingModel.value = false;
+  modelLoaded.value = true;
+  console.log("[Index] modelLoaded value:", modelLoaded.value);
+  // Save to localStorage
+  if (typeof window !== "undefined") {
+    localStorage.setItem("ekster_model_loaded", "true");
+  }
+};
+
+const loadHouseModel = () => {
+  if (!isLoadingModel.value && !modelLoaded.value) {
+    showModel.value = true;
+  }
+};
+
+// Watch for modelLoaded changes
+watch(modelLoaded, (newValue) => {
+  console.log("[Index] modelLoaded changed to:", newValue);
+  console.log("[Index] Cube should now be:", newValue ? "hidden" : "visible");
+});
+
 // Set up canvas reference
 onMounted(() => {
+  // Check for cached model state
+  checkCachedModelState();
+
+  console.log(
+    "[Index] Initial state - showModel:",
+    showModel.value,
+    "modelLoaded:",
+    modelLoaded.value
+  );
+
   // Find canvas element once TresCanvas is mounted
   const findCanvas = () => {
     const canvas = document.querySelector("canvas");
@@ -106,17 +167,77 @@ onMounted(() => {
       </div>
 
       <!-- Right column - 3D Model -->
-      <div class="relative h-96 sm:h-[500px] lg:h-auto lg:min-h-screen">
-        <TresCanvas
-          clear-color="#F7F9F7"
-          :camera="activeCamera || undefined"
-          class="w-full h-full"
+      <div
+        class="relative h-96 sm:h-[500px] lg:h-auto lg:min-h-screen flex flex-col"
+      >
+        <!-- 3D Canvas -->
+        <div class="flex-1 relative">
+          <TresCanvas
+            clear-color="#F7F9F7"
+            :camera="activeCamera || undefined"
+            class="w-full h-full"
+          >
+            <!-- Show white cube when model is not loaded -->
+            <WhiteCubePlaceholder v-if="!modelLoaded" :visible="!modelLoaded" />
+
+            <!-- Camera-only rig when no model loaded -->
+            <HouseModelRig
+              v-if="!showModel"
+              :canvas-element="canvasElement"
+              @camera-ready="onCameraReady"
+            />
+
+            <!-- House model with loading when requested -->
+            <HouseModelRigLazy
+              v-else
+              :canvas-element="canvasElement"
+              @camera-ready="onCameraReady"
+              @loading-started="onLoadingStarted"
+              @loading-progress="onLoadingProgress"
+              @loading-complete="onLoadingComplete"
+            />
+          </TresCanvas>
+        </div>
+
+        <!-- Load button -->
+        <div
+          v-if="!modelLoaded"
+          class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
         >
-          <HouseModelRig
-            :canvas-element="canvasElement"
-            @camera-ready="onCameraReady"
-          />
-        </TresCanvas>
+          <button
+            @click="loadHouseModel"
+            :disabled="isLoadingModel"
+            class="px-6 py-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:scale-102 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+            style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
+          >
+            <span v-if="!isLoadingModel" class="text-gray-900 font-medium"
+              >Laad huis</span
+            >
+            <span v-else class="flex items-center gap-2 text-gray-600">
+              <svg
+                class="animate-spin h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Laden...
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

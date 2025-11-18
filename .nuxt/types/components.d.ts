@@ -17,8 +17,10 @@ interface _GlobalComponents {
   'AppLoader': typeof import("../../components/AppLoader.vue")['default']
   'HouseModel': typeof import("../../components/HouseModel.vue")['default']
   'HouseModelRig': typeof import("../../components/HouseModelRig.vue")['default']
+  'HouseModelRigLazy': typeof import("../../components/HouseModelRigLazy.vue")['default']
   'ImageOverlay': typeof import("../../components/ImageOverlay.vue")['default']
   'Navigation': typeof import("../../components/Navigation.vue")['default']
+  'WhiteCubePlaceholder': typeof import("../../components/WhiteCubePlaceholder.vue")['default']
   'NuxtWelcome': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']
   'NuxtLayout': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-layout")['default']
   'NuxtErrorBoundary': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']
@@ -172,8 +174,10 @@ interface _GlobalComponents {
   'LazyAppLoader': LazyComponent<typeof import("../../components/AppLoader.vue")['default']>
   'LazyHouseModel': LazyComponent<typeof import("../../components/HouseModel.vue")['default']>
   'LazyHouseModelRig': LazyComponent<typeof import("../../components/HouseModelRig.vue")['default']>
+  'LazyHouseModelRigLazy': LazyComponent<typeof import("../../components/HouseModelRigLazy.vue")['default']>
   'LazyImageOverlay': LazyComponent<typeof import("../../components/ImageOverlay.vue")['default']>
   'LazyNavigation': LazyComponent<typeof import("../../components/Navigation.vue")['default']>
+  'LazyWhiteCubePlaceholder': LazyComponent<typeof import("../../components/WhiteCubePlaceholder.vue")['default']>
   'LazyNuxtWelcome': LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']>
   'LazyNuxtLayout': LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-layout")['default']>
   'LazyNuxtErrorBoundary': LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']>

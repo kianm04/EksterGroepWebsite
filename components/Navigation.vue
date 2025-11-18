@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, onMounted } from "vue";
 
 const buttons = [
   { id: "home", label: "Home", href: "#home" },
@@ -7,11 +7,16 @@ const buttons = [
   { id: "contact", label: "Contact", href: "#contact" },
 ];
 
-// Get loading state from composable
-const { isLoading } = useAppLoader();
+// Navigation is always visible (no loading screen anymore)
+const isVisible = ref(true);
 
-// Navigation is visible when NOT loading
-const isVisible = computed(() => !isLoading.value);
+// Add entrance animation on mount
+onMounted(() => {
+  // Small delay for smooth entrance
+  setTimeout(() => {
+    isVisible.value = true;
+  }, 100);
+});
 </script>
 
 <template>
