@@ -1,8 +1,8 @@
-import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { computed, ref, hasInjectionContext, getCurrentInstance, defineComponent, useSSRContext, inject, h, Suspense, Fragment, createApp, watch, unref, mergeProps, provide, shallowReactive, toRef, onErrorCaptured, onServerPrefetch, createVNode, resolveDynamicComponent, reactive, effectScope, shallowRef, isReadonly, isRef, isShallow, isReactive, toRaw, defineAsyncComponent, getCurrentScope } from 'vue';
+import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { hasInjectionContext, getCurrentInstance, defineComponent, ref, inject, h, Suspense, Fragment, useSSRContext, createApp, provide, shallowReactive, toRef, onErrorCaptured, onServerPrefetch, unref, createVNode, resolveDynamicComponent, reactive, effectScope, shallowRef, isReadonly, isRef, isShallow, isReactive, toRaw, defineAsyncComponent, mergeProps, getCurrentScope } from 'vue';
 import { k as hasProtocol, l as isScriptProtocol, h as joinURL, w as withQuery, s as sanitizeStatusCode, m as getContext, $ as $fetch, n as createHooks, o as executeAsync, c as createError$1, t as toRouteMatcher, p as createRouter$1, q as defu } from '../nitro/nitro.mjs';
-import { p as publicAssetsURL, b as baseURL } from '../routes/renderer.mjs';
+import { b as baseURL } from '../routes/renderer.mjs';
 import { RouterView, createMemoryHistory, createRouter, START_LOCATION } from 'vue-router';
-import { ssrRenderAttrs, ssrRenderClass, ssrRenderStyle, ssrRenderAttr, ssrInterpolate, ssrRenderComponent, ssrRenderSuspense, ssrRenderVNode } from 'vue/server-renderer';
+import { ssrRenderAttrs, ssrRenderComponent, ssrRenderSuspense, ssrRenderVNode } from 'vue/server-renderer';
 import 'node:http';
 import 'node:https';
 import 'node:events';
@@ -384,7 +384,7 @@ const _routes = [
   {
     name: "index",
     path: "/",
-    component: () => import('./index-K4AaYGr5.mjs')
+    component: () => import('./index-CfJCtCvK.mjs')
   }
 ];
 const ROUTE_KEY_PARENTHESES_RE = /(:\w+)\([^)]+\)/g;
@@ -735,153 +735,6 @@ const plugins = [
   components_plugin_4kY4pyzJIYX99vmMAAIorFf3CnAaptHitJgf7JxiED8,
   prerender_server_ynnXj36QfWUys84qChWwEUF0NU9iW5z_b0a2aehQ3q8
 ];
-const _imports_0 = publicAssetsURL("/images/loading-pagina-logo.png");
-const isLoading = ref(true);
-const loadingProgress = ref(0);
-const loadingItems = ref(/* @__PURE__ */ new Map());
-const minimumLoadingTime = 1200;
-const loadingStartTime = ref(Date.now());
-function useAppLoader() {
-  const registerLoadingItem = (id, label) => {
-    loadingItems.value.set(id, {
-      id,
-      progress: 0,
-      label
-    });
-    updateOverallProgress();
-  };
-  const updateItemProgress = (id, progress) => {
-    const item = loadingItems.value.get(id);
-    if (item) {
-      item.progress = Math.min(100, Math.max(0, progress));
-      loadingItems.value.set(id, item);
-      updateOverallProgress();
-    }
-  };
-  const completeLoadingItem = (id) => {
-    updateItemProgress(id, 100);
-  };
-  const updateOverallProgress = () => {
-    if (loadingItems.value.size === 0) {
-      loadingProgress.value = 0;
-      return;
-    }
-    const totalProgress = Array.from(loadingItems.value.values()).reduce((sum, item) => sum + item.progress, 0);
-    loadingProgress.value = Math.round(totalProgress / loadingItems.value.size);
-  };
-  const isFullyLoaded = computed(() => {
-    if (loadingItems.value.size === 0) return false;
-    return Array.from(loadingItems.value.values()).every((item) => item.progress === 100);
-  });
-  const finishLoading = async () => {
-    if (!isFullyLoaded.value) {
-      loadingItems.value.forEach((item) => {
-        item.progress = 100;
-      });
-      loadingProgress.value = 100;
-    }
-    const elapsedTime = Date.now() - loadingStartTime.value;
-    const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
-    if (remainingTime > 0) {
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    isLoading.value = false;
-  };
-  const forceHideLoading = () => {
-    loadingProgress.value = 100;
-    isLoading.value = false;
-  };
-  const resetLoading = () => {
-    isLoading.value = true;
-    loadingProgress.value = 0;
-    loadingItems.value.clear();
-    loadingStartTime.value = Date.now();
-  };
-  const initializeAppLoading = () => {
-    registerLoadingItem("app", "Initializing app");
-    registerLoadingItem("3d-model", "Loading 3D model");
-    registerLoadingItem("assets", "Loading assets");
-    setTimeout(() => updateItemProgress("app", 50), 100);
-    setTimeout(() => updateItemProgress("app", 100), 300);
-    setTimeout(() => updateItemProgress("assets", 30), 200);
-    setTimeout(() => updateItemProgress("assets", 60), 400);
-    setTimeout(() => updateItemProgress("assets", 100), 600);
-  };
-  return {
-    // State
-    isLoading,
-    loadingProgress,
-    loadingItems,
-    isFullyLoaded,
-    // Methods
-    registerLoadingItem,
-    updateItemProgress,
-    completeLoadingItem,
-    finishLoading,
-    forceHideLoading,
-    resetLoading,
-    initializeAppLoading
-  };
-}
-const _sfc_main$3 = /* @__PURE__ */ defineComponent({
-  __name: "AppLoader",
-  __ssrInlineRender: true,
-  setup(__props) {
-    const { isLoading: isLoading2, loadingProgress: loadingProgress2 } = useAppLoader();
-    const isVisible = ref(true);
-    const isExiting = ref(false);
-    const progressBarWidth = computed(() => `${loadingProgress2.value}%`);
-    watch(isLoading2, (newValue) => {
-      if (!newValue) {
-        isExiting.value = true;
-        setTimeout(() => {
-          isVisible.value = false;
-          setTimeout(() => {
-            isExiting.value = false;
-          }, 100);
-        }, 700);
-      }
-    });
-    return (_ctx, _push, _parent, _attrs) => {
-      if (unref(isLoading2) || isExiting.value) {
-        _push(`<div${ssrRenderAttrs(mergeProps({
-          class: ["fixed inset-0 z-40 flex items-center justify-center overflow-hidden pointer-events-none", {
-            "opacity-0": !isVisible.value,
-            "opacity-100": isVisible.value && !isExiting.value,
-            "opacity-0 scale-95": isExiting.value
-          }]
-        }, _attrs))} data-v-401b3dd0><div class="absolute inset-0 bg-[#F7F9F7] transition-opacity duration-700" data-v-401b3dd0></div><div class="${ssrRenderClass([{
-          "scale-90 opacity-0": !isVisible.value,
-          "scale-100 opacity-100": isVisible.value && !isExiting.value,
-          "scale-105 opacity-0": isExiting.value
-        }, "relative z-10"])}" style="${ssrRenderStyle({ "transition": "all 0.7s cubic-bezier(0.4, 0, 0.2, 1)" })}" data-v-401b3dd0><div class="relative bg-white rounded-lg p-12 border border-gray-200" style="${ssrRenderStyle({ "box-shadow": "0 2px 8px rgba(0, 0, 0, 0.1)" })}" data-v-401b3dd0><div class="flex justify-center mb-8" data-v-401b3dd0><div class="relative p-6 bg-white border border-gray-100 rounded-lg" style="${ssrRenderStyle({ "box-shadow": "0 2px 8px rgba(0, 0, 0, 0.05)" })}" data-v-401b3dd0><img${ssrRenderAttr("src", _imports_0)} alt="Ekster Logo" class="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 object-contain animate-float" data-v-401b3dd0></div></div><div class="w-72 sm:w-80 lg:w-96 mx-auto" data-v-401b3dd0><div class="relative h-2 bg-gray-200 rounded-full overflow-hidden" data-v-401b3dd0><div class="absolute left-0 top-0 h-full bg-gradient-to-r from-gray-600 to-gray-800 rounded-full transition-all duration-500 ease-out" style="${ssrRenderStyle({ width: progressBarWidth.value })}" data-v-401b3dd0><div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer rounded-full" data-v-401b3dd0></div></div></div><div class="mt-6 text-center" data-v-401b3dd0><p class="text-gray-900 text-sm sm:text-base font-medium tracking-wide" data-v-401b3dd0> Loading 3D experience </p><p class="text-gray-600 text-xs sm:text-sm mt-2 font-light tracking-wider" data-v-401b3dd0>${ssrInterpolate(unref(loadingProgress2))}% </p></div></div>`);
-        if (unref(loadingProgress2) < 50) {
-          _push(`<div class="mt-8 text-center" data-v-401b3dd0><p class="text-gray-500 text-xs tracking-wide animate-pulse" data-v-401b3dd0> Preparing immersive visualization </p></div>`);
-        } else {
-          _push(`<!---->`);
-        }
-        _push(`</div></div></div>`);
-      } else {
-        _push(`<!---->`);
-      }
-    };
-  }
-});
-const _export_sfc = (sfc, props) => {
-  const target = sfc.__vccOpts || sfc;
-  for (const [key, val] of props) {
-    target[key] = val;
-  }
-  return target;
-};
-const _sfc_setup$3 = _sfc_main$3.setup;
-_sfc_main$3.setup = (props, ctx) => {
-  const ssrContext = useSSRContext();
-  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/AppLoader.vue");
-  return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
-};
-const __nuxt_component_0 = /* @__PURE__ */ Object.assign(_export_sfc(_sfc_main$3, [["__scopeId", "data-v-401b3dd0"]]), { __name: "AppLoader" });
 const defineRouteProvider = (name = "RouteProvider") => defineComponent({
   name,
   props: {
@@ -914,7 +767,7 @@ const defineRouteProvider = (name = "RouteProvider") => defineComponent({
   }
 });
 const RouteProvider = defineRouteProvider();
-const __nuxt_component_1 = defineComponent({
+const __nuxt_component_0 = defineComponent({
   name: "NuxtPage",
   inheritAttrs: false,
   props: {
@@ -969,21 +822,9 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
   __name: "app",
   __ssrInlineRender: true,
   setup(__props) {
-    const { completeLoadingItem, finishLoading, updateItemProgress } = useAppLoader();
-    const modelLoaded = ref(false);
-    provide("updateModelLoadingProgress", (progress) => {
-      updateItemProgress("3d-model", progress);
-    });
-    provide("completeModelLoading", async () => {
-      modelLoaded.value = true;
-      completeLoadingItem("3d-model");
-      await finishLoading();
-    });
     return (_ctx, _push, _parent, _attrs) => {
-      const _component_AppLoader = __nuxt_component_0;
-      const _component_NuxtPage = __nuxt_component_1;
+      const _component_NuxtPage = __nuxt_component_0;
       _push(`<div${ssrRenderAttrs(_attrs)}>`);
-      _push(ssrRenderComponent(_component_AppLoader, null, null, _parent));
       _push(ssrRenderComponent(_component_NuxtPage, null, null, _parent));
       _push(`</div>`);
     };
@@ -1016,8 +857,8 @@ const _sfc_main$1 = {
     const statusMessage = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
     const description = _error.message || _error.toString();
     const stack = void 0;
-    const _Error404 = defineAsyncComponent(() => import('./error-404-aZE-cH2g.mjs'));
-    const _Error = defineAsyncComponent(() => import('./error-500-CCCp8-FJ.mjs'));
+    const _Error404 = defineAsyncComponent(() => import('./error-404-Bn7FE3nT.mjs'));
+    const _Error = defineAsyncComponent(() => import('./error-500-CU0zlPIz.mjs'));
     const ErrorTemplate = is404 ? _Error404 : _Error;
     return (_ctx, _push, _parent, _attrs) => {
       _push(ssrRenderComponent(unref(ErrorTemplate), mergeProps({ statusCode: unref(statusCode), statusMessage: unref(statusMessage), description: unref(description), stack: unref(stack) }, _attrs), null, _parent));
@@ -1098,5 +939,5 @@ let entry;
 }
 const entry$1 = (ssrContext) => entry(ssrContext);
 
-export { _export_sfc as _, useNuxtApp as a, useRuntimeConfig as b, nuxtLinkDefaults as c, useAppLoader as d, entry$1 as default, _imports_0 as e, navigateTo as n, resolveRouteObject as r, useRouter as u };
+export { useNuxtApp as a, useRuntimeConfig as b, nuxtLinkDefaults as c, entry$1 as default, navigateTo as n, resolveRouteObject as r, useRouter as u };
 //# sourceMappingURL=server.mjs.map

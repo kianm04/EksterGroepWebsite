@@ -10,17 +10,26 @@ const client_manifest = {
       "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js"
     ]
   },
+  "_DlAUqK2U.js": {
+    "resourceType": "script",
+    "module": true,
+    "prefetch": true,
+    "preload": true,
+    "file": "DlAUqK2U.js",
+    "name": "_plugin-vue_export-helper"
+  },
   "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-404.vue": {
     "resourceType": "script",
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "Dldbxh4j.js",
+    "file": "BSqnj_gG.js",
     "name": "error-404",
     "src": "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-404.vue",
     "isDynamicEntry": true,
     "imports": [
       "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
+      "_DlAUqK2U.js",
       "_Aqqu6E2g.js"
     ],
     "css": []
@@ -36,13 +45,14 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "CWTp_1OX.js",
+    "file": "KOoQD4Bg.js",
     "name": "error-500",
     "src": "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-500.vue",
     "isDynamicEntry": true,
     "imports": [
-      "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
-      "_Aqqu6E2g.js"
+      "_DlAUqK2U.js",
+      "_Aqqu6E2g.js",
+      "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js"
     ],
     "css": []
   },
@@ -57,7 +67,7 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "DLvPlqbs.js",
+    "file": "Dq4YzNwd.js",
     "name": "entry",
     "src": "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
     "isEntry": true,
@@ -66,11 +76,11 @@ const client_manifest = {
       "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-500.vue"
     ],
     "css": [
-      "entry.sneNVuab.css"
+      "entry.CIt9GVra.css"
     ]
   },
-  "entry.sneNVuab.css": {
-    "file": "entry.sneNVuab.css",
+  "entry.CIt9GVra.css": {
+    "file": "entry.CIt9GVra.css",
     "resourceType": "style",
     "prefetch": true,
     "preload": true
@@ -80,19 +90,20 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "DndUwchw.js",
+    "file": "BNyNu6VL.js",
     "name": "index",
     "src": "pages/index.vue",
     "isDynamicEntry": true,
     "imports": [
-      "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js"
+      "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
+      "_DlAUqK2U.js"
     ],
     "css": [
-      "index.5-ki9QZF.css"
+      "index.3DuC5JJb.css"
     ]
   },
-  "index.5-ki9QZF.css": {
-    "file": "index.5-ki9QZF.css",
+  "index.3DuC5JJb.css": {
+    "file": "index.3DuC5JJb.css",
     "resourceType": "style",
     "prefetch": true,
     "preload": true

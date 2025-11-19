@@ -1,7 +1,8 @@
-import { mergeProps, withCtx, createTextVNode, toDisplayString, defineComponent, shallowRef, h, resolveComponent, computed, useSSRContext } from 'vue';
+import { useSSRContext, mergeProps, withCtx, createTextVNode, toDisplayString, defineComponent, shallowRef, h, resolveComponent, computed } from 'vue';
 import { v as parseQuery, k as hasProtocol, h as joinURL, x as withTrailingSlash, y as withoutTrailingSlash } from '../nitro/nitro.mjs';
-import { _ as _export_sfc, u as useRouter, a as useNuxtApp, r as resolveRouteObject, b as useRuntimeConfig, n as navigateTo, c as nuxtLinkDefaults } from './server.mjs';
+import { u as useRouter, a as useNuxtApp, r as resolveRouteObject, b as useRuntimeConfig, n as navigateTo, c as nuxtLinkDefaults } from './server.mjs';
 import { ssrRenderAttrs, ssrInterpolate, ssrRenderComponent } from 'vue/server-renderer';
+import { _ as _export_sfc } from './_plugin-vue_export-helper-1tPrXgE0.mjs';
 import { u as useHead } from './composables-89fd3c_Q.mjs';
 import 'node:http';
 import 'node:https';
@@ -369,4 +370,4 @@ _sfc_main.setup = (props, ctx) => {
 const error404 = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-90a809bb"]]);
 
 export { error404 as default };
-//# sourceMappingURL=error-404-aZE-cH2g.mjs.map
+//# sourceMappingURL=error-404-Bn7FE3nT.mjs.map
