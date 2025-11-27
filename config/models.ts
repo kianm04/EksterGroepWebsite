@@ -152,7 +152,7 @@ export function getModelIds(): string[] {
  * Storage keys for model state persistence
  */
 export const STORAGE_KEYS = {
-  LOADED_MODEL: 'ekster_loaded_model',
+  MODEL_LOADED: 'ekster_model_loaded',
   USER_INITIATED: 'ekster_user_initiated',
   SELECTED_MODEL: 'ekster_selected_model',
 } as const;

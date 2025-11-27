@@ -22,7 +22,6 @@
     "@tresjs/post-processing": "latest",
     "@types/node": "^24.8.1",
     "eslint": "^9.36.0",
-    "gsap": "^3.13.0",
     "nuxt": "^4.1.2",
     "radix-vue": "^1.9.17",
     "three": "^0.180.0",

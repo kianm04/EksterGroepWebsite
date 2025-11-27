@@ -30,11 +30,9 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
-export { useAppLoader } from '../composables/useAppLoader';
 export { useCameraControls, CameraControlConfig, SphericalCoordinates } from '../composables/useCameraControls';
 export { useModelLoader, UseModelLoaderOptions, UseModelLoaderReturn } from '../composables/useModelLoader';
 export { useParallaxScroll, ParallaxConfig } from '../composables/useParallaxScroll';
-export { usePerformance } from '../composables/usePerformance';
 export { useResponsive, ViewportDimensions, ResponsiveBreakpoints } from '../composables/useResponsive';
 export { useScrollCamera, ScrollCameraConfig } from '../composables/useScrollCamera';
 export { useCameraManager, useGraph, useLoader, useLoop, useRendererManager, useTres, useTresContext, useTresContextProvider, extend as extendTres, TresObject } from '@tresjs/core';

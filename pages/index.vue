@@ -3,7 +3,6 @@ import { ref, onMounted, watch, computed } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
-import ModelPlaceholder from "~/components/ModelPlaceholder.vue";
 import ModelSelector from "~/components/ModelSelector.vue";
 // MobileViewportContainer kept for potential future use, but not used in new mobile layout
 // import MobileViewportContainer from "~/components/MobileViewportContainer.vue";
@@ -59,8 +58,8 @@ const section2Opacity = computed(() => {
 // Check localStorage for cached state
 const checkCachedModelState = () => {
   if (typeof window !== "undefined") {
-    const cached = localStorage.getItem("ekster_model_loaded");
-    const userInitiated = localStorage.getItem("ekster_user_initiated");
+    const cached = localStorage.getItem(STORAGE_KEYS.MODEL_LOADED);
+    const userInitiated = localStorage.getItem(STORAGE_KEYS.USER_INITIATED);
     if (cached === "true" && userInitiated === "true") {
       showModel.value = true;
       modelLoaded.value = true;
@@ -97,8 +96,8 @@ const onLoadingComplete = () => {
 
   // Save to localStorage only if user initiated the load
   if (typeof window !== "undefined" && userInitiatedLoad.value) {
-    localStorage.setItem("ekster_model_loaded", "true");
-    localStorage.setItem("ekster_user_initiated", "true");
+    localStorage.setItem(STORAGE_KEYS.MODEL_LOADED, "true");
+    localStorage.setItem(STORAGE_KEYS.USER_INITIATED, "true");
   }
 };
 

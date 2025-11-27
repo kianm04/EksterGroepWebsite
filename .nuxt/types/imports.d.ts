@@ -103,7 +103,6 @@ declare global {
   const updateAppConfig: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/config').updateAppConfig
   const useAnimations: typeof import('@tresjs/cientos').useAnimations
   const useAppConfig: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/config').useAppConfig
-  const useAppLoader: typeof import('../../composables/useAppLoader').useAppLoader
   const useAsyncData: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData').useAsyncData
   const useAttrs: typeof import('vue').useAttrs
   const useCameraControls: typeof import('../../composables/useCameraControls').useCameraControls
@@ -141,7 +140,6 @@ declare global {
   const useNuxtData: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
   const useNuxtDevTools: typeof import('../../node_modules/.pnpm/@nuxt+devtools@2.6.5_vite@7.1.10_@types+node@24.8.1_jiti@2.6.1_terser@5.44.0_yaml@2.8.1__vue@3.5.22_typescript@5.9.3_/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
   const useParallaxScroll: typeof import('../../composables/useParallaxScroll').useParallaxScroll
-  const usePerformance: typeof import('../../composables/usePerformance').usePerformance
   const usePreviewMode: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/preview').usePreviewMode
   const useProgress: typeof import('@tresjs/cientos').useProgress
   const useRendererManager: typeof import('@tresjs/core').useRendererManager
@@ -346,7 +344,6 @@ declare module 'vue' {
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/config')['updateAppConfig']>
     readonly useAnimations: UnwrapRef<typeof import('@tresjs/cientos')['useAnimations']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/config')['useAppConfig']>
-    readonly useAppLoader: UnwrapRef<typeof import('../../composables/useAppLoader')['useAppLoader']>
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCameraControls: UnwrapRef<typeof import('../../composables/useCameraControls')['useCameraControls']>
@@ -384,7 +381,6 @@ declare module 'vue' {
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
     readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/.pnpm/@nuxt+devtools@2.6.5_vite@7.1.10_@types+node@24.8.1_jiti@2.6.1_terser@5.44.0_yaml@2.8.1__vue@3.5.22_typescript@5.9.3_/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly useParallaxScroll: UnwrapRef<typeof import('../../composables/useParallaxScroll')['useParallaxScroll']>
-    readonly usePerformance: UnwrapRef<typeof import('../../composables/usePerformance')['usePerformance']>
     readonly usePreviewMode: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']>
     readonly useProgress: UnwrapRef<typeof import('@tresjs/cientos')['useProgress']>
     readonly useRendererManager: UnwrapRef<typeof import('@tresjs/core')['useRendererManager']>

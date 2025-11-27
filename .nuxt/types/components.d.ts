@@ -14,9 +14,7 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 interface _GlobalComponents {
-  'AppLoader': typeof import("../../components/AppLoader.vue")['default']
   'HouseModelRig': typeof import("../../components/HouseModelRig.vue")['default']
-  'ImageOverlay': typeof import("../../components/ImageOverlay.vue")['default']
   'MobileViewportContainer': typeof import("../../components/MobileViewportContainer.vue")['default']
   'ModelPlaceholder': typeof import("../../components/ModelPlaceholder.vue")['default']
   'ModelSelector': typeof import("../../components/ModelSelector.vue")['default']
@@ -172,9 +170,7 @@ interface _GlobalComponents {
   'Head': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/head/runtime/components")['Head']
   'Body': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/head/runtime/components")['Body']
   'NuxtIsland': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-island")['default']
-  'LazyAppLoader': LazyComponent<typeof import("../../components/AppLoader.vue")['default']>
   'LazyHouseModelRig': LazyComponent<typeof import("../../components/HouseModelRig.vue")['default']>
-  'LazyImageOverlay': LazyComponent<typeof import("../../components/ImageOverlay.vue")['default']>
   'LazyMobileViewportContainer': LazyComponent<typeof import("../../components/MobileViewportContainer.vue")['default']>
   'LazyModelPlaceholder': LazyComponent<typeof import("../../components/ModelPlaceholder.vue")['default']>
   'LazyModelSelector': LazyComponent<typeof import("../../components/ModelSelector.vue")['default']>
