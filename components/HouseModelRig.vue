@@ -64,6 +64,25 @@ const effectiveRadius = computed(() => {
   return props.scrollControlledRadius ?? sphericalCoords.value.radius;
 });
 
+// Vertical offset for look-at target on mobile (shifts house up in viewport)
+// This offset should reduce as we zoom in (scroll down) to keep the top visible
+const mobileLookAtOffset = computed(() => {
+  if (props.responsiveMode !== 'mobile') return 0;
+
+  // Calculate zoom progress based on radius (50 = zoomed out, 22 = zoomed in)
+  const maxRadius = 50;
+  const minRadius = 22;
+  const currentRadius = props.scrollControlledRadius ?? maxRadius;
+
+  // zoomProgress: 0 = zoomed out (start), 1 = zoomed in (scrolled down)
+  const zoomProgress = 1 - (currentRadius - minRadius) / (maxRadius - minRadius);
+  const clampedProgress = Math.max(0, Math.min(1, zoomProgress));
+
+  // Full offset (-3) when zoomed out, no offset (0) when zoomed in
+  const baseOffset = -3;
+  return baseOffset * (1 - clampedProgress);
+});
+
 // Check if scroll is actively controlling the camera (user is currently scrolling)
 const isScrollControlled = computed(() => {
   // On mobile, disable scroll control when in free drag mode
@@ -355,6 +374,12 @@ function startLoop() {
 function loop() {
   // Update camera position using the composable
   updateCameraPosition(effectiveRadius.value);
+
+  // Apply mobile vertical offset to shift the view
+  if (runtimeCamera.value && mobileLookAtOffset.value !== 0) {
+    runtimeCamera.value.position.y += mobileLookAtOffset.value;
+    runtimeCamera.value.updateMatrixWorld();
+  }
 
   rafId = requestAnimationFrame(loop);
 }

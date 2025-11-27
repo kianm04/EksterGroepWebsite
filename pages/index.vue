@@ -340,7 +340,7 @@ onMounted(() => {
     <!-- Mobile Layout: Vertical stack with text on top, 3D model below -->
     <div v-else class="relative pt-12 bg-[#F7F9F7]">
       <!-- Hero Section: Text Card -->
-      <div class="px-3 pt-4 pb-6">
+      <div class="px-3 pt-4 pb-4">
         <div class="mobile-text-card">
           <!-- Content section -->
           <div class="space-y-4 text-gray-700">
@@ -379,7 +379,7 @@ onMounted(() => {
       </div>
 
       <!-- 3D Model Section with gradient masks -->
-      <div class="relative h-[55vh] overflow-hidden">
+      <div class="relative h-[60vh] overflow-hidden bg-[#F7F9F7]">
         <!-- Top gradient fade -->
         <div class="mobile-model-gradient-top"></div>
 
@@ -510,7 +510,7 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 40px;
   background: linear-gradient(to bottom, #F7F9F7 0%, transparent 100%);
   z-index: 10;
   pointer-events: none;
