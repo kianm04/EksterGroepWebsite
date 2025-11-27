@@ -1,9 +1,10 @@
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, type ComputedRef, type Ref } from "vue";
 
 export interface ScrollCameraConfig {
-  startRadius?: number;
-  endRadius?: number;
+  startRadius?: number | Ref<number> | ComputedRef<number>;
+  endRadius?: number | Ref<number> | ComputedRef<number>;
   scrollDebounceMs?: number;
+  enabled?: ComputedRef<boolean> | boolean;
 }
 
 /**
@@ -12,10 +13,28 @@ export interface ScrollCameraConfig {
  */
 export function useScrollCamera(config: ScrollCameraConfig = {}) {
   const {
-    startRadius = 45,
-    endRadius = 20,
+    startRadius: startRadiusConfig = 45,
+    endRadius: endRadiusConfig = 20,
     scrollDebounceMs = 150,
+    enabled = true,
   } = config;
+
+  // Helper to unwrap reactive values
+  const unwrap = <T>(value: T | Ref<T> | ComputedRef<T>): T => {
+    if (value && typeof value === 'object' && 'value' in value) {
+      return (value as Ref<T>).value;
+    }
+    return value as T;
+  };
+
+  // Convert radius configs to computed for reactivity
+  const startRadius = computed(() => unwrap(startRadiusConfig));
+  const endRadius = computed(() => unwrap(endRadiusConfig));
+
+  // Convert to computed if it's a plain boolean
+  const isEnabled = computed(() =>
+    typeof enabled === 'boolean' ? enabled : enabled.value
+  );
 
   // Scroll state
   const scrollProgress = ref(0); // Normalized 0-1 (linear)
@@ -47,7 +66,9 @@ export function useScrollCamera(config: ScrollCameraConfig = {}) {
    * Interpolates between start and end radius with quadratic easing
    */
   const cameraRadius = computed(() => {
-    return startRadius - (easedScrollProgress.value * (startRadius - endRadius));
+    const start = startRadius.value;
+    const end = endRadius.value;
+    return start - (easedScrollProgress.value * (start - end));
   });
 
   /**
@@ -79,6 +100,7 @@ export function useScrollCamera(config: ScrollCameraConfig = {}) {
    * Ensures smooth 60fps performance
    */
   const handleScroll = () => {
+    if (!isEnabled.value) return; // Skip if disabled
     if (rafPending) return;
 
     rafPending = true;
@@ -130,7 +152,9 @@ export function useScrollCamera(config: ScrollCameraConfig = {}) {
 
   // Lifecycle hooks
   onMounted(() => {
-    initScrollListeners();
+    if (isEnabled.value) {
+      initScrollListeners();
+    }
   });
 
   onUnmounted(() => {

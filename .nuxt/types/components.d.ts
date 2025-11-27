@@ -17,6 +17,7 @@ interface _GlobalComponents {
   'AppLoader': typeof import("../../components/AppLoader.vue")['default']
   'HouseModelRig': typeof import("../../components/HouseModelRig.vue")['default']
   'ImageOverlay': typeof import("../../components/ImageOverlay.vue")['default']
+  'MobileViewportContainer': typeof import("../../components/MobileViewportContainer.vue")['default']
   'ModelPlaceholder': typeof import("../../components/ModelPlaceholder.vue")['default']
   'ModelSelector': typeof import("../../components/ModelSelector.vue")['default']
   'Navigation': typeof import("../../components/Navigation.vue")['default']
@@ -174,6 +175,7 @@ interface _GlobalComponents {
   'LazyAppLoader': LazyComponent<typeof import("../../components/AppLoader.vue")['default']>
   'LazyHouseModelRig': LazyComponent<typeof import("../../components/HouseModelRig.vue")['default']>
   'LazyImageOverlay': LazyComponent<typeof import("../../components/ImageOverlay.vue")['default']>
+  'LazyMobileViewportContainer': LazyComponent<typeof import("../../components/MobileViewportContainer.vue")['default']>
   'LazyModelPlaceholder': LazyComponent<typeof import("../../components/ModelPlaceholder.vue")['default']>
   'LazyModelSelector': LazyComponent<typeof import("../../components/ModelSelector.vue")['default']>
   'LazyNavigation': LazyComponent<typeof import("../../components/Navigation.vue")['default']>

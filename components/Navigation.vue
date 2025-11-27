@@ -22,20 +22,20 @@ onMounted(() => {
 <template>
   <nav
     v-show="isVisible"
-    class="fixed top-0 left-0 right-0 z-50 px-6 py-3 transition-all duration-700 bg-white border-b border-gray-200"
+    class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-1.5 sm:py-3 transition-all duration-700 bg-white border-b border-gray-200"
     :class="
       isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
     "
     style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
   >
-    <div class="max-w-7xl mx-auto grid grid-cols-3 items-center py-2">
+    <div class="max-w-7xl mx-auto grid grid-cols-3 items-center py-1 sm:py-2">
       <!-- Logo section -->
       <div class="flex items-center justify-start">
         <div class="flex items-center space-x-4">
           <img
             src="/images/loading-pagina-logo.png"
             alt="Ekster Logo"
-            class="h-16 w-16 lg:h-20 lg:w-20 object-contain"
+            class="h-10 w-10 sm:h-16 sm:w-16 lg:h-20 lg:w-20 object-contain"
           />
         </div>
       </div>
@@ -44,12 +44,12 @@ onMounted(() => {
       <div></div>
 
       <!-- Navigation buttons -->
-      <div class="flex items-center justify-end gap-2">
+      <div class="flex items-center justify-end gap-1.5 sm:gap-2">
         <a
           v-for="(button, index) in buttons"
           :key="button.id"
           :href="button.href"
-          class="relative px-5 py-2.5 rounded-lg font-medium text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:border-gray-300"
+          class="relative px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:border-gray-300"
           :style="`animation-delay: ${index * 100}ms;`"
           :class="[
             'text-gray-700 hover:text-gray-900',

@@ -5,10 +5,16 @@ import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
 import ModelPlaceholder from "~/components/ModelPlaceholder.vue";
 import ModelSelector from "~/components/ModelSelector.vue";
+// MobileViewportContainer kept for potential future use, but not used in new mobile layout
+// import MobileViewportContainer from "~/components/MobileViewportContainer.vue";
 import Navigation from "~/components/Navigation.vue";
 import { MODELS, getModelById, STORAGE_KEYS } from "~/config/models";
 import type { ModelConfig } from "~/types/models";
 import { useScrollCamera } from "~/composables/useScrollCamera";
+import { useResponsive } from "~/composables/useResponsive";
+
+// Use responsive composable
+const { isMobile, isTablet, isDesktop } = useResponsive();
 
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
@@ -27,10 +33,16 @@ const selectedModel = computed(() =>
   selectedModelId.value ? getModelById(selectedModelId.value) : null
 );
 
-// Scroll-based camera control
+// Scroll-based camera control (enabled for both desktop and mobile)
+// Use computed values so radius updates reactively when viewport changes
+const mobileStartRadius = computed(() => isMobile.value ? 50 : 45);
+const mobileEndRadius = computed(() => isMobile.value ? 22 : 20);
+
 const { scrollProgress, easedScrollProgress, cameraRadius, isScrolling } = useScrollCamera({
-  startRadius: 45,
-  endRadius: 20,
+  startRadius: mobileStartRadius,
+  endRadius: mobileEndRadius,
+  scrollDebounceMs: 100,  // Quick detection of scroll end for snappy rotation resume
+  enabled: true  // Always enabled (was: computed(() => !isMobile.value))
 });
 
 // Fade transitions based on eased scroll progress (quadratic)
@@ -160,11 +172,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-[#F7F9F7] snap-y snap-mandatory">
+  <div class="bg-[#F7F9F7]" :class="{ 'snap-y snap-mandatory': !isMobile }">
     <Navigation />
 
-    <!-- Main content grid with scroll sections -->
-    <div class="relative lg:grid lg:grid-cols-2 pt-16 lg:pt-20">
+    <!-- Desktop Layout -->
+    <div v-if="!isMobile" class="relative lg:grid lg:grid-cols-2 pt-16 lg:pt-20">
       <!-- Left column - Stacked content sections -->
       <div>
         <!-- Section 1: Original content -->
@@ -324,5 +336,221 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Mobile Layout: Vertical stack with text on top, 3D model below -->
+    <div v-else class="relative pt-12 bg-[#F7F9F7]">
+      <!-- Hero Section: Text Card -->
+      <div class="px-3 pt-4 pb-6">
+        <div class="mobile-text-card">
+          <!-- Content section -->
+          <div class="space-y-4 text-gray-700">
+            <p class="text-base font-light leading-7">
+              De Ekstergroep doet beheer, exploitatie, renovatie en verbetering
+              van zowel monumentaal als gewoon vastgoed.
+            </p>
+
+            <p class="text-sm leading-6">
+              Wij leggen de focus op esthetiek, waarbij degelijkheid en
+              levensduur als vereisten worden meegenomen.
+            </p>
+
+            <p class="text-sm leading-6">
+              We werken samen als team en pakken jaarlijks een aantal
+              totalrenovaties op. Daarin begeleiden we de client van begin tot
+              eind.
+            </p>
+          </div>
+
+          <!-- Call to action -->
+          <div class="pt-5 mt-5 border-t border-gray-200">
+            <p class="text-sm leading-6 text-gray-700 mb-4">
+              Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw
+              te brengen?
+            </p>
+            <a
+              href="mailto:info@ekstergroep.nl"
+              class="flex items-center justify-center w-full px-5 py-3.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-all duration-200 text-sm"
+              style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15)"
+            >
+              info@ekstergroep.nl
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D Model Section with gradient masks -->
+      <div class="relative h-[55vh] overflow-hidden">
+        <!-- Top gradient fade -->
+        <div class="mobile-model-gradient-top"></div>
+
+        <!-- 3D Canvas -->
+        <div class="absolute inset-0">
+          <TresCanvas
+            clear-color="#F7F9F7"
+            :camera="activeCamera || undefined"
+            class="w-full h-full"
+          >
+            <HouseModelRig
+              :canvas-element="canvasElement"
+              :load-model="showModel"
+              :scroll-controlled-radius="cameraRadius"
+              :is-scrolling-active="isScrolling"
+              responsive-mode="mobile"
+              @camera-ready="onCameraReady"
+              @model-ready="(model) => console.log('[Index] Model ready:', model)"
+              @loading-started="onLoadingStarted"
+              @loading-progress="onLoadingProgress"
+              @loading-complete="onLoadingComplete"
+            />
+          </TresCanvas>
+        </div>
+
+        <!-- Bottom gradient fade -->
+        <div class="mobile-model-gradient-bottom"></div>
+
+        <!-- Side gradient fades -->
+        <div class="mobile-model-gradient-left"></div>
+        <div class="mobile-model-gradient-right"></div>
+      </div>
+
+      <!-- Section 2: Additional content -->
+      <div class="px-3 py-8 bg-[#F7F9F7]">
+        <div class="mobile-text-card">
+          <h2 class="text-xl font-light text-gray-900 mb-4">
+            Discover Our Craftsmanship
+          </h2>
+
+          <div class="space-y-4 text-gray-700">
+            <p class="text-base font-light leading-7">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+
+            <p class="text-sm leading-6">
+              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat.
+            </p>
+
+            <p class="text-sm leading-6">
+              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+              officia deserunt mollit anim id est laborum.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fixed scroll indicator at bottom center -->
+      <div
+        class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-20"
+        :style="{ opacity: section1Opacity }"
+      >
+        <div class="mobile-scroll-indicator">
+          <span>Scroll to explore</span>
+          <div class="flex space-x-1 ml-2">
+            <div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse"></div>
+            <div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+            <div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Model Selector (floating at bottom) -->
+      <div
+        v-if="!userInitiatedLoad"
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20"
+      >
+        <ModelSelector
+          :models="MODELS"
+          :selected-model-id="selectedModelId"
+          :loading-model-id="loadingModelId"
+          :loaded-model-ids="loadedModelIds"
+          :is-any-loading="isLoadingModel"
+          variant="horizontal"
+          :show-file-sizes="false"
+          @select-model="handleSelectModel"
+          @load-model="handleLoadModel"
+        />
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+/* Mobile text card - clean architectural style */
+.mobile-text-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+/* Scroll indicator pill */
+.mobile-scroll-indicator {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  transition: opacity 0.3s ease-out;
+}
+
+/* Gradient masks for 3D model section */
+.mobile-model-gradient-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, #F7F9F7 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.mobile-model-gradient-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to top, #F7F9F7 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.mobile-model-gradient-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  background: linear-gradient(to right, #F7F9F7 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.mobile-model-gradient-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  background: linear-gradient(to left, #F7F9F7 0%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Ensure smooth transitions for opacity changes */
+[style*="opacity"] {
+  will-change: opacity;
+}
+</style>
