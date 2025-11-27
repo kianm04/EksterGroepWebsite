@@ -1,7 +1,7 @@
-import { defineComponent, ref, computed, watch, mergeProps, unref, withCtx, createVNode, useSlots, shallowRef, getCurrentInstance, createElementBlock, openBlock, normalizeStyle, normalizeClass, markRaw, nextTick, reactive, toValue, isRef, toRefs, renderSlot, createElementVNode, watchEffect, useAttrs, render, createCommentVNode, createBlock, useSSRContext, getCurrentScope, onScopeDispose, hasInjectionContext, inject, provide, readonly, shallowReadonly } from 'vue';
-import { ssrRenderAttrs, ssrRenderComponent, ssrRenderStyle, ssrRenderAttr, ssrRenderList, ssrRenderClass, ssrInterpolate, ssrIncludeBooleanAttr } from 'vue/server-renderer';
+import { ref, defineComponent, watch, shallowRef, toRefs, createElementBlock, openBlock, unref, renderSlot, createElementVNode, watchEffect, useSlots, useAttrs, computed, isRef, createVNode, render, createCommentVNode, createBlock, useSSRContext, toValue, mergeProps, withCtx, getCurrentScope, onScopeDispose, markRaw, nextTick, getCurrentInstance, normalizeStyle, normalizeClass, hasInjectionContext, inject, reactive, provide, readonly, shallowReadonly } from 'vue';
+import { ssrRenderAttrs, ssrRenderAttr, ssrRenderComponent, ssrRenderClass, ssrRenderList, ssrRenderStyle, ssrIncludeBooleanAttr, ssrInterpolate } from 'vue/server-renderer';
 import * as Ki from 'three';
-import { PCFSoftShadowMap, ACESFilmicToneMapping, Scene, WebGLRenderer, Loader, FileLoader, BufferGeometry, BufferAttribute, LoaderUtils, MeshPhysicalMaterial, Vector2, Color, SpotLight, PointLight, DirectionalLight, Matrix4, Vector3, Quaternion, InstancedMesh, InstancedBufferAttribute, Object3D, TextureLoader, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, Texture, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, DoubleSide, MeshBasicMaterial, PropertyBinding, SkinnedMesh, Mesh, LineSegments, Line, LineLoop, Points, Group, PerspectiveCamera, MathUtils, OrthographicCamera, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, FrontSide, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Interpolant, Box3, Sphere, REVISION, SphereGeometry, Triangle, Line3, Plane, Ray, AudioListener, Audio, AudioLoader, PlaneGeometry, Raycaster, ShaderMaterial, UniformsUtils, Vector4, WebGLRenderTarget, HalfFloatType, NoToneMapping, Clock } from 'three';
+import { Vector3, SphereGeometry, Object3D, Triangle, Vector2, Matrix4, Line3, Plane, Ray, Quaternion, Sphere, AudioListener, Audio, AudioLoader, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, MathUtils, REVISION, Color, WebGLRenderer, PlaneGeometry, Raycaster, ShaderMaterial, DoubleSide, PerspectiveCamera, OrthographicCamera, UniformsUtils, Mesh, Vector4, WebGLRenderTarget, HalfFloatType, NoToneMapping, PCFSoftShadowMap, ACESFilmicToneMapping, Scene, Loader, FileLoader, BufferAttribute, LoaderUtils, MeshPhysicalMaterial, SpotLight, PointLight, DirectionalLight, InstancedMesh, InstancedBufferAttribute, TextureLoader, ImageBitmapLoader, LinearMipmapLinearFilter, NearestMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipmapNearestFilter, LinearFilter, NearestFilter, RepeatWrapping, MirroredRepeatWrapping, ClampToEdgeWrapping, Texture, PointsMaterial, Material, LineBasicMaterial, MeshStandardMaterial, MeshBasicMaterial, PropertyBinding, SkinnedMesh, LineSegments, Line, LineLoop, Points, Group, Skeleton, AnimationClip, Bone, InterpolateDiscrete, InterpolateLinear, VectorKeyframeTrack, NumberKeyframeTrack, QuaternionKeyframeTrack, FrontSide, TrianglesDrawMode, TriangleFanDrawMode, TriangleStripDrawMode, Interpolant, Box3, Clock } from 'three';
 import { _ as _export_sfc } from './_plugin-vue_export-helper-1tPrXgE0.mjs';
 import { p as publicAssetsURL } from '../routes/renderer.mjs';
 import 'vue-bundle-renderer/runtime';
@@ -22908,11 +22908,149 @@ _sfc_main$4.setup = (props, ctx) => {
   return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
 };
 const WhiteCubePlaceholder = /* @__PURE__ */ Object.assign(_export_sfc(_sfc_main$4, [["__scopeId", "data-v-2dc39462"]]), { __name: "WhiteCubePlaceholder" });
+function useCameraControls(config = {}) {
+  const {
+    baseRadius = 45,
+    autoRotationSpeed = 2 * Math.PI / 90,
+    // Full rotation in 90 seconds
+    sensitivity = 3e-3,
+    damping = 0.08,
+    minPhi = 0.05,
+    maxPhi = Math.PI / 2 - 0.05
+  } = config;
+  const runtimeCamera = ref(null);
+  const lookAtTarget = ref(null);
+  const sphericalCoords = ref({
+    radius: baseRadius,
+    theta: 0,
+    phi: Math.PI / 3
+  });
+  const targetSpherical = ref({
+    theta: 0,
+    phi: Math.PI / 3
+  });
+  const currentSpherical = ref({
+    theta: 0,
+    phi: Math.PI / 3
+  });
+  const isInteracting = ref(false);
+  const isAutoRotating = ref(true);
+  const previousInteractionPosition = ref({ x: 0, y: 0 });
+  const clock = markRaw(new Ki.Clock());
+  const sphericalToCartesian = (radius, theta, phi) => {
+    const x = radius * Math.sin(phi) * Math.cos(theta);
+    const z = radius * Math.sin(phi) * Math.sin(theta);
+    const y3 = radius * Math.cos(phi);
+    return new Ki.Vector3(x, y3, z);
+  };
+  const clampPhi = (phi) => {
+    return Math.max(minPhi, Math.min(maxPhi, phi));
+  };
+  const initializeFromCamera = (camera, target) => {
+    runtimeCamera.value = markRaw(camera);
+    lookAtTarget.value = markRaw(target);
+    const targetPos = new Ki.Vector3();
+    target.getWorldPosition(targetPos);
+    const cameraPos = new Ki.Vector3();
+    camera.getWorldPosition(cameraPos);
+    const offset = cameraPos.clone().sub(targetPos);
+    const distance = offset.length();
+    sphericalCoords.value = {
+      radius: distance || baseRadius,
+      theta: Math.atan2(offset.z, offset.x),
+      phi: Math.acos(Math.max(-1, Math.min(1, offset.y / distance)))
+    };
+    targetSpherical.value.theta = sphericalCoords.value.theta;
+    targetSpherical.value.phi = sphericalCoords.value.phi;
+    currentSpherical.value.theta = sphericalCoords.value.theta;
+    currentSpherical.value.phi = sphericalCoords.value.phi;
+  };
+  const createDefaultCamera = () => {
+    const camera = new Ki.PerspectiveCamera(50, 1, 0.1, 1e3);
+    camera.position.set(30, 20, 30);
+    const target = new Ki.Object3D();
+    target.position.set(0, 0, 0);
+    initializeFromCamera(camera, target);
+    return camera;
+  };
+  const startInteraction = (x, y3) => {
+    isInteracting.value = true;
+    isAutoRotating.value = false;
+    previousInteractionPosition.value = { x, y: y3 };
+  };
+  const updateInteraction = (x, y3) => {
+    if (!isInteracting.value) return;
+    const deltaX = x - previousInteractionPosition.value.x;
+    const deltaY = y3 - previousInteractionPosition.value.y;
+    targetSpherical.value.theta -= deltaX * sensitivity;
+    targetSpherical.value.phi += deltaY * sensitivity;
+    targetSpherical.value.phi = clampPhi(targetSpherical.value.phi);
+    previousInteractionPosition.value = { x, y: y3 };
+  };
+  const endInteraction = () => {
+    isInteracting.value = false;
+    setTimeout(() => {
+      if (!isInteracting.value) {
+        isAutoRotating.value = true;
+      }
+    }, 1e3);
+  };
+  const updateCameraPosition = (effectiveRadius, deltaTime, phiAdjustment) => {
+    if (!runtimeCamera.value || !lookAtTarget.value) return;
+    const delta = deltaTime ?? clock.getDelta();
+    if (isAutoRotating.value && !isInteracting.value) {
+      targetSpherical.value.theta += autoRotationSpeed * delta;
+    }
+    currentSpherical.value.theta += (targetSpherical.value.theta - currentSpherical.value.theta) * damping;
+    currentSpherical.value.phi += (targetSpherical.value.phi - currentSpherical.value.phi) * damping;
+    const targetWorldPos = new Ki.Vector3();
+    lookAtTarget.value.getWorldPosition(targetWorldPos);
+    const adjustedPhi = phiAdjustment !== void 0 ? currentSpherical.value.phi + phiAdjustment : currentSpherical.value.phi;
+    const radius = effectiveRadius ?? sphericalCoords.value.radius;
+    const cameraOffset = sphericalToCartesian(
+      radius,
+      currentSpherical.value.theta,
+      adjustedPhi
+    );
+    runtimeCamera.value.position.copy(targetWorldPos).add(cameraOffset);
+    runtimeCamera.value.lookAt(targetWorldPos);
+    runtimeCamera.value.updateMatrixWorld();
+  };
+  const setAutoRotation = (enabled) => {
+    isAutoRotating.value = enabled;
+  };
+  const resetCamera = () => {
+    targetSpherical.value.theta = 0;
+    targetSpherical.value.phi = Math.PI / 3;
+  };
+  return {
+    // Camera references (exposed as refs for direct access)
+    runtimeCamera,
+    lookAtTarget,
+    // Coordinate systems
+    sphericalCoords: computed(() => sphericalCoords.value),
+    targetSpherical: computed(() => targetSpherical.value),
+    currentSpherical: computed(() => currentSpherical.value),
+    // Interaction state
+    isInteracting: computed(() => isInteracting.value),
+    isAutoRotating: computed(() => isAutoRotating.value),
+    // Functions
+    initializeFromCamera,
+    createDefaultCamera,
+    startInteraction,
+    updateInteraction,
+    endInteraction,
+    updateCameraPosition,
+    setAutoRotation,
+    resetCamera,
+    sphericalToCartesian,
+    clampPhi
+  };
+}
 const intervalError = "[nuxt] `setInterval` should not be used on the server. Consider wrapping it with an `onNuxtReady`, `onBeforeMount` or `onMounted` lifecycle hook, or ensure you only call it in the browser by checking `false`.";
 const setInterval$1 = () => {
   console.error(intervalError);
 };
-const baseRadius = 45;
 const _sfc_main$3 = /* @__PURE__ */ defineComponent({
   __name: "HouseModelRig",
   __ssrInlineRender: true,
@@ -22920,7 +23058,8 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
     canvasElement: {},
     loadModel: { type: Boolean },
     scrollControlledRadius: {},
-    isScrollingActive: { type: Boolean }
+    isScrollingActive: { type: Boolean },
+    responsiveMode: {}
   },
   emits: ["camera-ready", "model-ready", "loading-started", "loading-progress", "loading-complete"],
   setup(__props, { emit: __emit }) {
@@ -22935,21 +23074,43 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
     const cubeOpacity = ref(1);
     ref(0);
     const showHouseModel = computed(() => props.loadModel && hasEmittedComplete.value);
-    const runtimeCamera = shallowRef(null);
-    const lookAtTarget = shallowRef(null);
-    const sphericalCoords = ref({
-      radius: baseRadius,
-      theta: 0,
-      phi: Math.PI / 3
+    const {
+      runtimeCamera,
+      lookAtTarget,
+      sphericalCoords,
+      isInteracting,
+      initializeFromCamera,
+      startInteraction,
+      updateInteraction,
+      endInteraction,
+      setAutoRotation
+    } = useCameraControls({
+      baseRadius: 45,
+      autoRotationSpeed: 2 * Math.PI / 90,
+      sensitivity: props.responsiveMode === "mobile" ? 5e-3 : 3e-3,
+      // Higher sensitivity for mobile
+      damping: 0.08
     });
     computed(() => {
       return props.scrollControlledRadius ?? sphericalCoords.value.radius;
     });
+    computed(() => {
+      if (props.responsiveMode !== "mobile") return 0;
+      const maxRadius = 50;
+      const minRadius = 22;
+      const currentRadius = props.scrollControlledRadius ?? maxRadius;
+      const zoomProgress = 1 - (currentRadius - minRadius) / (maxRadius - minRadius);
+      const clampedProgress = Math.max(0, Math.min(1, zoomProgress));
+      const zoomedOutPhiAdjustment = -0.15;
+      const zoomedInPhiAdjustment = 0.1;
+      return zoomedOutPhiAdjustment + (zoomedInPhiAdjustment - zoomedOutPhiAdjustment) * clampedProgress;
+    });
     const isScrollControlled = computed(() => {
+      if (props.responsiveMode === "mobile") {
+        return props.isScrollingActive ?? false;
+      }
       return props.isScrollingActive ?? false;
     });
-    const isAutoRotating = ref(true);
-    markRaw(new Ki.Clock());
     const scene = computed(() => state.value?.scene ?? null);
     watch(progress, (newProgress) => {
       console.log("[HouseModelRig] Progress:", newProgress);
@@ -22987,66 +23148,42 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
         setInterval$1();
       }
     });
-    const isInteracting = ref(false);
-    const previousMousePosition = { x: 0, y: 0 };
     const handleMouseDown = (event) => {
-      isInteracting.value = true;
-      isAutoRotating.value = false;
-      previousMousePosition.x = event.clientX;
-      previousMousePosition.y = event.clientY;
+      startInteraction(event.clientX, event.clientY);
       if (props.canvasElement) {
         props.canvasElement.style.cursor = "grabbing";
       }
     };
     const handleMouseUp = () => {
-      isInteracting.value = false;
-      setTimeout(() => {
-        isAutoRotating.value = true;
-      }, 1e3);
+      endInteraction();
       if (props.canvasElement) {
         props.canvasElement.style.cursor = "grab";
       }
     };
     const handleMouseMove = (event) => {
-      if (!isInteracting.value) return;
-      event.clientX - previousMousePosition.x;
-      event.clientY - previousMousePosition.y;
-      previousMousePosition.x = event.clientX;
-      previousMousePosition.y = event.clientY;
+      updateInteraction(event.clientX, event.clientY);
     };
     const handleMouseLeave = () => {
-      isInteracting.value = false;
-      setTimeout(() => {
-        isAutoRotating.value = true;
-      }, 1e3);
+      endInteraction();
       if (props.canvasElement) {
         props.canvasElement.style.cursor = "grab";
       }
     };
     const handleTouchStart = (event) => {
       if (event.touches.length !== 1) return;
-      isInteracting.value = true;
-      isAutoRotating.value = false;
       const touch = event.touches[0];
       if (!touch) return;
-      previousMousePosition.x = touch.clientX;
-      previousMousePosition.y = touch.clientY;
+      startInteraction(touch.clientX, touch.clientY);
     };
     const handleTouchMove = (event) => {
       if (!isInteracting.value || event.touches.length !== 1) return;
       event.preventDefault();
       const touch = event.touches[0];
       if (!touch) return;
-      touch.clientX - previousMousePosition.x;
-      touch.clientY - previousMousePosition.y;
-      previousMousePosition.x = touch.clientX;
-      previousMousePosition.y = touch.clientY;
+      updateInteraction(touch.clientX, touch.clientY);
     };
     const handleTouchEnd = () => {
-      isInteracting.value = false;
-      setTimeout(() => {
-        isAutoRotating.value = true;
-      }, 1e3);
+      endInteraction();
     };
     const initializeListeners = () => {
       if (!props.canvasElement) return;
@@ -23059,18 +23196,6 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
       canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
       canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
       canvas.addEventListener("touchend", handleTouchEnd);
-    };
-    const cleanupListeners = () => {
-      if (props.canvasElement) {
-        const canvas = props.canvasElement;
-        canvas.removeEventListener("mousedown", handleMouseDown);
-        canvas.removeEventListener("mouseleave", handleMouseLeave);
-        canvas.removeEventListener("touchstart", handleTouchStart);
-        canvas.removeEventListener("touchmove", handleTouchMove);
-        canvas.removeEventListener("touchend", handleTouchEnd);
-      }
-      (void 0).removeEventListener("mouseup", handleMouseUp);
-      (void 0).removeEventListener("mousemove", handleMouseMove);
     };
     const processScene = async (loadedScene) => {
       let foundHouseModel = void 0;
@@ -23094,27 +23219,15 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
       if (foundLookAtTarget) {
         lookAtTarget.value = markRaw(foundLookAtTarget);
       }
-      if (foundCamera && lookAtTarget.value) {
+      if (foundCamera && foundLookAtTarget) {
         const camera = foundCamera;
-        runtimeCamera.value = markRaw(camera);
-        const targetPos = new Ki.Vector3();
-        lookAtTarget.value.getWorldPosition(targetPos);
-        const cameraPos = new Ki.Vector3();
-        camera.getWorldPosition(cameraPos);
-        const offset = cameraPos.clone().sub(targetPos);
-        sphericalCoords.value.theta = Math.atan2(offset.z, offset.x);
-        const yRatio = offset.y / sphericalCoords.value.radius;
-        const clampedRatio = Math.max(-1, Math.min(1, yRatio));
-        sphericalCoords.value.phi = Math.acos(clampedRatio);
-        sphericalCoords.value.theta;
-        sphericalCoords.value.phi;
-        sphericalCoords.value.theta;
-        sphericalCoords.value.phi;
+        const target = foundLookAtTarget;
+        initializeFromCamera(camera, target);
         if (camera.parent) {
           camera.parent.remove(camera);
         }
         loadedScene.add(camera);
-        emit("camera-ready", runtimeCamera.value);
+        emit("camera-ready", camera);
         await nextTick();
       }
     };
@@ -23148,15 +23261,15 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
       isScrollControlled,
       (scrollControlled) => {
         if (scrollControlled) {
-          cleanupListeners();
-          isAutoRotating.value = false;
-        } else if (props.canvasElement) {
-          initializeListeners();
-          isAutoRotating.value = true;
+          setAutoRotation(false);
+        } else {
+          setAutoRotation(true);
+          if (props.canvasElement) {
+            initializeListeners();
+          }
         }
       }
     );
-    markRaw(new Ki.Vector3());
     return (_ctx, _push, _parent, _attrs) => {
       _push(`<!--[-->`);
       if (cubeOpacity.value > 0) {
@@ -23169,8 +23282,8 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
       } else {
         _push(`<!---->`);
       }
-      if (runtimeCamera.value) {
-        _push(`<primitive${ssrRenderAttr("object", runtimeCamera.value)} attach="camera"></primitive>`);
+      if (unref(runtimeCamera)) {
+        _push(`<primitive${ssrRenderAttr("object", unref(runtimeCamera))} attach="camera"></primitive>`);
       } else {
         _push(`<!---->`);
       }
@@ -23318,20 +23431,20 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     return (_ctx, _push, _parent, _attrs) => {
       _push(`<nav${ssrRenderAttrs(mergeProps({
         class: [
-          "fixed top-0 left-0 right-0 z-50 px-6 py-3 transition-all duration-700 bg-white border-b border-gray-200",
+          "fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-1.5 sm:py-3 transition-all duration-700 bg-white border-b border-gray-200",
           isVisible.value ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
         ],
         style: { "box-shadow": "0 2px 8px rgba(0, 0, 0, 0.1)" }
       }, _attrs, {
         style: isVisible.value ? null : { display: "none" }
-      }))} data-v-4d3ade08><div class="max-w-7xl mx-auto grid grid-cols-3 items-center py-2" data-v-4d3ade08><div class="flex items-center justify-start" data-v-4d3ade08><div class="flex items-center space-x-4" data-v-4d3ade08><img${ssrRenderAttr("src", _imports_0)} alt="Ekster Logo" class="h-16 w-16 lg:h-20 lg:w-20 object-contain" data-v-4d3ade08></div></div><div data-v-4d3ade08></div><div class="flex items-center justify-end gap-2" data-v-4d3ade08><!--[-->`);
-      ssrRenderList(buttons, (button, index) => {
-        _push(`<a${ssrRenderAttr("href", button.href)} style="${ssrRenderStyle([`animation-delay: ${index * 100}ms;`, { "box-shadow": "0 1px 3px rgba(0, 0, 0, 0.1)", "transition": "all 0.2s ease-out" }])}" class="${ssrRenderClass([[
+      }))} data-v-9c9db4fc><div class="max-w-7xl mx-auto grid grid-cols-3 items-center py-1 sm:py-2" data-v-9c9db4fc><div class="flex items-center justify-start" data-v-9c9db4fc><div class="flex items-center space-x-4" data-v-9c9db4fc><img${ssrRenderAttr("src", _imports_0)} alt="Ekster Logo" class="h-10 w-10 sm:h-16 sm:w-16 lg:h-20 lg:w-20 object-contain" data-v-9c9db4fc></div></div><div data-v-9c9db4fc></div><div class="flex items-center justify-end gap-1.5 sm:gap-2" data-v-9c9db4fc><!--[-->`);
+      ssrRenderList(buttons, (button, index2) => {
+        _push(`<a${ssrRenderAttr("href", button.href)} style="${ssrRenderStyle([`animation-delay: ${index2 * 100}ms;`, { "box-shadow": "0 1px 3px rgba(0, 0, 0, 0.1)", "transition": "all 0.2s ease-out" }])}" class="${ssrRenderClass([[
           "text-gray-700 hover:text-gray-900",
           "hover:scale-102 active:scale-98",
           "hover:shadow-lg",
           isVisible.value ? "animate-slide-in" : "opacity-0"
-        ], "relative px-5 py-2.5 rounded-lg font-medium text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:border-gray-300"])}" data-v-4d3ade08><span class="relative z-10 font-sans" data-v-4d3ade08>${ssrInterpolate(button.label)}</span><div class="absolute inset-0 rounded-lg ring-2 ring-gray-400/0 group-focus-visible:ring-gray-400/50 transition-all duration-200" data-v-4d3ade08></div></a>`);
+        ], "relative px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:border-gray-300"])}" data-v-9c9db4fc><span class="relative z-10 font-sans" data-v-9c9db4fc>${ssrInterpolate(button.label)}</span><div class="absolute inset-0 rounded-lg ring-2 ring-gray-400/0 group-focus-visible:ring-gray-400/50 transition-all duration-200" data-v-9c9db4fc></div></a>`);
       });
       _push(`<!--]--></div></div></nav>`);
     };
@@ -23343,7 +23456,7 @@ _sfc_main$1.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/Navigation.vue");
   return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
 };
-const Navigation = /* @__PURE__ */ Object.assign(_export_sfc(_sfc_main$1, [["__scopeId", "data-v-4d3ade08"]]), { __name: "Navigation" });
+const Navigation = /* @__PURE__ */ Object.assign(_export_sfc(_sfc_main$1, [["__scopeId", "data-v-9c9db4fc"]]), { __name: "Navigation" });
 const MODELS = [
   {
     id: "house-circle-rig",
@@ -23419,10 +23532,22 @@ function getModelById(id2) {
 }
 function useScrollCamera(config = {}) {
   const {
-    startRadius = 45,
-    endRadius = 20,
-    scrollDebounceMs = 150
+    startRadius: startRadiusConfig = 45,
+    endRadius: endRadiusConfig = 20,
+    scrollDebounceMs = 150,
+    enabled = true
   } = config;
+  const unwrap = (value) => {
+    if (value && typeof value === "object" && "value" in value) {
+      return value.value;
+    }
+    return value;
+  };
+  const startRadius = computed(() => unwrap(startRadiusConfig));
+  const endRadius = computed(() => unwrap(endRadiusConfig));
+  computed(
+    () => typeof enabled === "boolean" ? enabled : enabled.value
+  );
   const scrollProgress = ref(0);
   const isScrolling = ref(false);
   const easeInOutQuad = (t) => {
@@ -23432,7 +23557,9 @@ function useScrollCamera(config = {}) {
     return easeInOutQuad(scrollProgress.value);
   });
   const cameraRadius = computed(() => {
-    return startRadius - easedScrollProgress.value * (startRadius - endRadius);
+    const start = startRadius.value;
+    const end = endRadius.value;
+    return start - easedScrollProgress.value * (start - end);
   });
   const updateScrollProgress = () => {
     return;
@@ -23446,10 +23573,49 @@ function useScrollCamera(config = {}) {
     updateScrollProgress
   };
 }
+function useResponsive() {
+  const viewport = ref({
+    width: 1024,
+    // Default to desktop for SSR
+    height: 768,
+    orientation: "landscape"
+  });
+  const BREAKPOINTS = {
+    mobile: 768,
+    tablet: 1024,
+    largeDesktop: 1536
+  };
+  const isMobile = computed(() => viewport.value.width < BREAKPOINTS.mobile);
+  const isTablet = computed(
+    () => viewport.value.width >= BREAKPOINTS.mobile && viewport.value.width < BREAKPOINTS.tablet
+  );
+  const isDesktop = computed(() => viewport.value.width >= BREAKPOINTS.tablet);
+  const isLargeDesktop = computed(() => viewport.value.width >= BREAKPOINTS.largeDesktop);
+  const isTouchDevice = ref(false);
+  const updateViewport = () => {
+    return;
+  };
+  return {
+    // Viewport info
+    viewport: computed(() => viewport.value),
+    // Breakpoints
+    isMobile,
+    isTablet,
+    isDesktop,
+    isLargeDesktop,
+    // Touch detection
+    isTouchDevice,
+    // Utility functions
+    updateViewport,
+    // Raw breakpoints for custom checks
+    breakpoints: BREAKPOINTS
+  };
+}
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "index",
   __ssrInlineRender: true,
   setup(__props) {
+    const { isMobile } = useResponsive();
     const activeCamera = ref(null);
     const canvasElement = ref(null);
     const showModel = ref(false);
@@ -23462,9 +23628,25 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     computed(
       () => selectedModelId.value ? getModelById(selectedModelId.value) : null
     );
+    ref(844);
+    const getResponsiveRadius = (baseRadius) => {
+      return baseRadius;
+    };
+    const mobileStartRadius = computed(() => {
+      const baseRadius = isMobile.value ? 50 : 45;
+      return isMobile.value ? getResponsiveRadius(baseRadius) : baseRadius;
+    });
+    const mobileEndRadius = computed(() => {
+      const baseRadius = isMobile.value ? 22 : 20;
+      return isMobile.value ? getResponsiveRadius(baseRadius) : baseRadius;
+    });
     const { easedScrollProgress, cameraRadius, isScrolling } = useScrollCamera({
-      startRadius: 45,
-      endRadius: 20
+      startRadius: mobileStartRadius,
+      endRadius: mobileEndRadius,
+      scrollDebounceMs: 100,
+      // Quick detection of scroll end for snappy rotation resume
+      enabled: true
+      // Always enabled (was: computed(() => !isMobile.value))
     });
     const section1Opacity = computed(() => {
       return Math.max(0, 1 - easedScrollProgress.value * 2);
@@ -23517,30 +23699,20 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       console.log("[Index] Cube should now be:", newValue ? "hidden" : "visible");
     });
     return (_ctx, _push, _parent, _attrs) => {
-      _push(`<div${ssrRenderAttrs(mergeProps({ class: "bg-[#F7F9F7] snap-y snap-mandatory" }, _attrs))}>`);
+      _push(`<div${ssrRenderAttrs(mergeProps({
+        class: ["bg-[#F7F9F7]", { "snap-y snap-mandatory": !unref(isMobile) }]
+      }, _attrs))} data-v-4a9dba00>`);
       _push(ssrRenderComponent(Navigation, null, null, _parent));
-      _push(`<div class="relative lg:grid lg:grid-cols-2 pt-16 lg:pt-20"><div><div class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700" style="${ssrRenderStyle({ opacity: section1Opacity.value })}"><div class="max-w-xl space-y-8 lg:space-y-12"><div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed"><p class="text-base lg:text-lg font-light leading-relaxed"> De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed. </p><p class="text-sm lg:text-base leading-relaxed"> Wij leggen de focus op esthetiek, waarbij degelijkheid en levensduur als vereisten worden meegenomen. </p><p class="text-sm lg:text-base leading-relaxed"> We werken samen als team en pakken jaarlijks een aantal totalrenovaties op. Daarin begeleiden we de client van begin tot eind. Samen met de architect zetten we de dromen op papier, die we vervolgens door de constructeur laten doorrekenen. Na het uitgeebreid bespreken en plannen van de uit te voeren taken komt het team ten tonele en streven we er naar alles naar planning uit te voeren. </p></div><div class="space-y-3 lg:space-y-4 pt-4 lg:pt-6"><p class="text-sm lg:text-base leading-relaxed text-gray-700"> Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw te brengen? </p><div class="flex flex-col sm:inline-flex sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0 group"><span class="text-sm text-gray-600">Neem contact op via</span><a href="mailto:info@ekstergroep.nl" class="inline-flex items-center px-3 lg:px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:border-gray-400 hover:shadow-md transition-all duration-200 hover:scale-102 text-sm" style="${ssrRenderStyle({ "box-shadow": "0 1px 3px rgba(0, 0, 0, 0.1)" })}"> info@ekstergroep.nl </a></div></div><div class="pt-6 lg:pt-8 border-t border-gray-200 relative"><div class="text-xs text-gray-500 tracking-wider uppercase font-medium flex items-center space-x-2"><span>Start scrolling to explore</span><div class="flex space-x-1"><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.2s" })}"></div><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.4s" })}"></div></div></div></div></div></div><div class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700" style="${ssrRenderStyle({ opacity: section2Opacity.value })}"><div class="max-w-xl space-y-8 lg:space-y-12"><div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed"><h2 class="text-2xl lg:text-3xl font-light text-gray-900"> Discover Our Craftsmanship </h2><p class="text-base lg:text-lg font-light leading-relaxed"> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p><p class="text-sm lg:text-base leading-relaxed"> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. </p><p class="text-sm lg:text-base leading-relaxed"> Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. </p></div></div></div></div><div class="relative h-screen lg:sticky lg:top-0 flex flex-col snap-start"><div class="flex-1 relative">`);
-      _push(ssrRenderComponent(unref(ol), {
-        "clear-color": "#F7F9F7",
-        camera: activeCamera.value || void 0,
-        class: "w-full h-full"
-      }, {
-        default: withCtx((_, _push2, _parent2, _scopeId) => {
-          if (_push2) {
-            _push2(ssrRenderComponent(HouseModelRig, {
-              "canvas-element": canvasElement.value,
-              "load-model": showModel.value,
-              "scroll-controlled-radius": unref(cameraRadius),
-              "is-scrolling-active": unref(isScrolling),
-              onCameraReady,
-              onModelReady: (model) => console.log("[Index] Model ready:", model),
-              onLoadingStarted,
-              onLoadingProgress,
-              onLoadingComplete
-            }, null, _parent2, _scopeId));
-          } else {
-            return [
-              createVNode(HouseModelRig, {
+      if (!unref(isMobile)) {
+        _push(`<div class="relative lg:grid lg:grid-cols-2 pt-16 lg:pt-20" data-v-4a9dba00><div data-v-4a9dba00><div class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700" style="${ssrRenderStyle({ opacity: section1Opacity.value })}" data-v-4a9dba00><div class="max-w-xl space-y-8 lg:space-y-12" data-v-4a9dba00><div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed" data-v-4a9dba00><p class="text-base lg:text-lg font-light leading-relaxed" data-v-4a9dba00> De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed. </p><p class="text-sm lg:text-base leading-relaxed" data-v-4a9dba00> Wij leggen de focus op esthetiek, waarbij degelijkheid en levensduur als vereisten worden meegenomen. </p><p class="text-sm lg:text-base leading-relaxed" data-v-4a9dba00> We werken samen als team en pakken jaarlijks een aantal totalrenovaties op. Daarin begeleiden we de client van begin tot eind. Samen met de architect zetten we de dromen op papier, die we vervolgens door de constructeur laten doorrekenen. Na het uitgeebreid bespreken en plannen van de uit te voeren taken komt het team ten tonele en streven we er naar alles naar planning uit te voeren. </p></div><div class="space-y-3 lg:space-y-4 pt-4 lg:pt-6" data-v-4a9dba00><p class="text-sm lg:text-base leading-relaxed text-gray-700" data-v-4a9dba00> Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw te brengen? </p><div class="flex flex-col sm:inline-flex sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0 group" data-v-4a9dba00><span class="text-sm text-gray-600" data-v-4a9dba00>Neem contact op via</span><a href="mailto:info@ekstergroep.nl" class="inline-flex items-center px-3 lg:px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium hover:border-gray-400 hover:shadow-md transition-all duration-200 hover:scale-102 text-sm" style="${ssrRenderStyle({ "box-shadow": "0 1px 3px rgba(0, 0, 0, 0.1)" })}" data-v-4a9dba00> info@ekstergroep.nl </a></div></div><div class="pt-6 lg:pt-8 border-t border-gray-200 relative" data-v-4a9dba00><div class="text-xs text-gray-500 tracking-wider uppercase font-medium flex items-center space-x-2" data-v-4a9dba00><span data-v-4a9dba00>Start scrolling to explore</span><div class="flex space-x-1" data-v-4a9dba00><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse" data-v-4a9dba00></div><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.2s" })}" data-v-4a9dba00></div><div class="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.4s" })}" data-v-4a9dba00></div></div></div></div></div></div><div class="snap-start min-h-screen flex items-center justify-center px-6 lg:px-12 transition-opacity duration-700" style="${ssrRenderStyle({ opacity: section2Opacity.value })}" data-v-4a9dba00><div class="max-w-xl space-y-8 lg:space-y-12" data-v-4a9dba00><div class="space-y-4 lg:space-y-6 text-gray-700 leading-relaxed" data-v-4a9dba00><h2 class="text-2xl lg:text-3xl font-light text-gray-900" data-v-4a9dba00> Discover Our Craftsmanship </h2><p class="text-base lg:text-lg font-light leading-relaxed" data-v-4a9dba00> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p><p class="text-sm lg:text-base leading-relaxed" data-v-4a9dba00> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. </p><p class="text-sm lg:text-base leading-relaxed" data-v-4a9dba00> Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. </p></div></div></div></div><div class="relative h-screen lg:sticky lg:top-0 flex flex-col snap-start" data-v-4a9dba00><div class="flex-1 relative" data-v-4a9dba00>`);
+        _push(ssrRenderComponent(unref(ol), {
+          "clear-color": "#F7F9F7",
+          camera: activeCamera.value || void 0,
+          class: "w-full h-full"
+        }, {
+          default: withCtx((_, _push2, _parent2, _scopeId) => {
+            if (_push2) {
+              _push2(ssrRenderComponent(HouseModelRig, {
                 "canvas-element": canvasElement.value,
                 "load-model": showModel.value,
                 "scroll-controlled-radius": unref(cameraRadius),
@@ -23550,31 +23722,105 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                 onLoadingStarted,
                 onLoadingProgress,
                 onLoadingComplete
-              }, null, 8, ["canvas-element", "load-model", "scroll-controlled-radius", "is-scrolling-active", "onModelReady"])
-            ];
-          }
-        }),
-        _: 1
-      }, _parent));
-      _push(`</div>`);
-      if (!userInitiatedLoad.value) {
-        _push(`<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">`);
-        _push(ssrRenderComponent(ModelSelector, {
-          models: unref(MODELS),
-          "selected-model-id": selectedModelId.value,
-          "loading-model-id": loadingModelId.value,
-          "loaded-model-ids": loadedModelIds.value,
-          "is-any-loading": isLoadingModel.value,
-          variant: "horizontal",
-          "show-file-sizes": true,
-          onSelectModel: handleSelectModel,
-          onLoadModel: handleLoadModel
-        }, null, _parent));
+              }, null, _parent2, _scopeId));
+            } else {
+              return [
+                createVNode(HouseModelRig, {
+                  "canvas-element": canvasElement.value,
+                  "load-model": showModel.value,
+                  "scroll-controlled-radius": unref(cameraRadius),
+                  "is-scrolling-active": unref(isScrolling),
+                  onCameraReady,
+                  onModelReady: (model) => console.log("[Index] Model ready:", model),
+                  onLoadingStarted,
+                  onLoadingProgress,
+                  onLoadingComplete
+                }, null, 8, ["canvas-element", "load-model", "scroll-controlled-radius", "is-scrolling-active", "onModelReady"])
+              ];
+            }
+          }),
+          _: 1
+        }, _parent));
         _push(`</div>`);
+        if (!userInitiatedLoad.value) {
+          _push(`<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10" data-v-4a9dba00>`);
+          _push(ssrRenderComponent(ModelSelector, {
+            models: unref(MODELS),
+            "selected-model-id": selectedModelId.value,
+            "loading-model-id": loadingModelId.value,
+            "loaded-model-ids": loadedModelIds.value,
+            "is-any-loading": isLoadingModel.value,
+            variant: "horizontal",
+            "show-file-sizes": true,
+            onSelectModel: handleSelectModel,
+            onLoadModel: handleLoadModel
+          }, null, _parent));
+          _push(`</div>`);
+        } else {
+          _push(`<!---->`);
+        }
+        _push(`</div></div>`);
       } else {
-        _push(`<!---->`);
+        _push(`<div class="relative pt-12 bg-[#F7F9F7]" data-v-4a9dba00><div class="px-3 pt-4 pb-4" data-v-4a9dba00><div class="mobile-text-card" data-v-4a9dba00><div class="space-y-4 text-gray-700" data-v-4a9dba00><p class="text-base font-light leading-7" data-v-4a9dba00> De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed. </p><p class="text-sm leading-6" data-v-4a9dba00> Wij leggen de focus op esthetiek, waarbij degelijkheid en levensduur als vereisten worden meegenomen. </p><p class="text-sm leading-6" data-v-4a9dba00> We werken samen als team en pakken jaarlijks een aantal totalrenovaties op. Daarin begeleiden we de client van begin tot eind. </p></div><div class="pt-5 mt-5 border-t border-gray-200" data-v-4a9dba00><p class="text-sm leading-6 text-gray-700 mb-4" data-v-4a9dba00> Bent u op zoek naar een mooi team om uw woning naar de 21ste eeuw te brengen? </p><a href="mailto:info@ekstergroep.nl" class="flex items-center justify-center w-full px-5 py-3.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-all duration-200 text-sm" style="${ssrRenderStyle({ "box-shadow": "0 2px 8px rgba(0, 0, 0, 0.15)" })}" data-v-4a9dba00> info@ekstergroep.nl </a></div></div></div><div class="relative h-[60vh] overflow-hidden bg-[#F7F9F7]" data-v-4a9dba00><div class="absolute left-0 right-0 top-3/4 -translate-y-3/4" style="${ssrRenderStyle({ "height": "100vh" })}" data-v-4a9dba00>`);
+        _push(ssrRenderComponent(unref(ol), {
+          "clear-color": "#F7F9F7",
+          camera: activeCamera.value || void 0,
+          class: "w-full h-full"
+        }, {
+          default: withCtx((_, _push2, _parent2, _scopeId) => {
+            if (_push2) {
+              _push2(ssrRenderComponent(HouseModelRig, {
+                "canvas-element": canvasElement.value,
+                "load-model": showModel.value,
+                "scroll-controlled-radius": unref(cameraRadius),
+                "is-scrolling-active": unref(isScrolling),
+                "responsive-mode": "mobile",
+                onCameraReady,
+                onModelReady: (model) => console.log("[Index] Model ready:", model),
+                onLoadingStarted,
+                onLoadingProgress,
+                onLoadingComplete
+              }, null, _parent2, _scopeId));
+            } else {
+              return [
+                createVNode(HouseModelRig, {
+                  "canvas-element": canvasElement.value,
+                  "load-model": showModel.value,
+                  "scroll-controlled-radius": unref(cameraRadius),
+                  "is-scrolling-active": unref(isScrolling),
+                  "responsive-mode": "mobile",
+                  onCameraReady,
+                  onModelReady: (model) => console.log("[Index] Model ready:", model),
+                  onLoadingStarted,
+                  onLoadingProgress,
+                  onLoadingComplete
+                }, null, 8, ["canvas-element", "load-model", "scroll-controlled-radius", "is-scrolling-active", "onModelReady"])
+              ];
+            }
+          }),
+          _: 1
+        }, _parent));
+        _push(`</div><div class="mobile-model-gradient-top" data-v-4a9dba00></div><div class="mobile-model-gradient-bottom" data-v-4a9dba00></div><div class="mobile-model-gradient-left" data-v-4a9dba00></div><div class="mobile-model-gradient-right" data-v-4a9dba00></div></div><div class="px-3 py-8 bg-[#F7F9F7]" data-v-4a9dba00><div class="mobile-text-card" data-v-4a9dba00><h2 class="text-xl font-light text-gray-900 mb-4" data-v-4a9dba00> Discover Our Craftsmanship </h2><div class="space-y-4 text-gray-700" data-v-4a9dba00><p class="text-base font-light leading-7" data-v-4a9dba00> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </p><p class="text-sm leading-6" data-v-4a9dba00> Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p><p class="text-sm leading-6" data-v-4a9dba00> Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p></div></div></div><div class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-20" style="${ssrRenderStyle({ opacity: section1Opacity.value })}" data-v-4a9dba00><div class="mobile-scroll-indicator" data-v-4a9dba00><span data-v-4a9dba00>Scroll to explore</span><div class="flex space-x-1 ml-2" data-v-4a9dba00><div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" data-v-4a9dba00></div><div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.2s" })}" data-v-4a9dba00></div><div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style="${ssrRenderStyle({ "animation-delay": "0.4s" })}" data-v-4a9dba00></div></div></div></div>`);
+        if (!userInitiatedLoad.value) {
+          _push(`<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20" data-v-4a9dba00>`);
+          _push(ssrRenderComponent(ModelSelector, {
+            models: unref(MODELS),
+            "selected-model-id": selectedModelId.value,
+            "loading-model-id": loadingModelId.value,
+            "loaded-model-ids": loadedModelIds.value,
+            "is-any-loading": isLoadingModel.value,
+            variant: "horizontal",
+            "show-file-sizes": false,
+            onSelectModel: handleSelectModel,
+            onLoadModel: handleLoadModel
+          }, null, _parent));
+          _push(`</div>`);
+        } else {
+          _push(`<!---->`);
+        }
+        _push(`</div>`);
       }
-      _push(`</div></div></div>`);
+      _push(`</div>`);
     };
   }
 });
@@ -23584,6 +23830,7 @@ _sfc_main.setup = (props, ctx) => {
   (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/index.vue");
   return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
 };
+const index = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-4a9dba00"]]);
 
-export { _sfc_main as default };
-//# sourceMappingURL=index-CfJCtCvK.mjs.map
+export { index as default };
+//# sourceMappingURL=index-BcXKi3ks.mjs.map

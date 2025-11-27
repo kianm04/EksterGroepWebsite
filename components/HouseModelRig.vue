@@ -64,9 +64,10 @@ const effectiveRadius = computed(() => {
   return props.scrollControlledRadius ?? sphericalCoords.value.radius;
 });
 
-// Vertical offset for look-at target on mobile (shifts house up in viewport)
-// This offset should reduce as we zoom in (scroll down) to keep the top visible
-const mobileLookAtOffset = computed(() => {
+// Mobile camera phi angle adjustment (vertical viewing angle)
+// Lower phi = camera higher up looking more downward
+// Higher phi = camera lower looking more upward
+const mobilePhiAdjustment = computed(() => {
   if (props.responsiveMode !== 'mobile') return 0;
 
   // Calculate zoom progress based on radius (50 = zoomed out, 22 = zoomed in)
@@ -78,9 +79,13 @@ const mobileLookAtOffset = computed(() => {
   const zoomProgress = 1 - (currentRadius - minRadius) / (maxRadius - minRadius);
   const clampedProgress = Math.max(0, Math.min(1, zoomProgress));
 
-  // Full offset (-3) when zoomed out, no offset (0) when zoomed in
-  const baseOffset = -3;
-  return baseOffset * (1 - clampedProgress);
+  // When zoomed OUT: Slight downward tilt for better framing
+  // When zoomed IN: Slight phi increase (look slightly more level) → keeps roof visible
+  const zoomedOutPhiAdjustment = -0.15; // Subtle downward angle when far
+  const zoomedInPhiAdjustment = 0.1;    // Slight upward tilt when close
+
+  // Interpolate between the two adjustments based on zoom progress
+  return zoomedOutPhiAdjustment + (zoomedInPhiAdjustment - zoomedOutPhiAdjustment) * clampedProgress;
 });
 
 // Check if scroll is actively controlling the camera (user is currently scrolling)
@@ -372,14 +377,8 @@ function startLoop() {
 }
 
 function loop() {
-  // Update camera position using the composable
-  updateCameraPosition(effectiveRadius.value);
-
-  // Apply mobile vertical offset to shift the view
-  if (runtimeCamera.value && mobileLookAtOffset.value !== 0) {
-    runtimeCamera.value.position.y += mobileLookAtOffset.value;
-    runtimeCamera.value.updateMatrixWorld();
-  }
+  // Update camera position with mobile phi adjustment for viewport angle
+  updateCameraPosition(effectiveRadius.value, undefined, mobilePhiAdjustment.value);
 
   rafId = requestAnimationFrame(loop);
 }

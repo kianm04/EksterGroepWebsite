@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
@@ -34,8 +34,33 @@ const selectedModel = computed(() =>
 
 // Scroll-based camera control (enabled for both desktop and mobile)
 // Use computed values so radius updates reactively when viewport changes
-const mobileStartRadius = computed(() => isMobile.value ? 50 : 45);
-const mobileEndRadius = computed(() => isMobile.value ? 22 : 20);
+// Scale radius based on viewport height for better mobile fitting
+
+// Reactive viewport height tracking
+const viewportHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 844);
+
+const getResponsiveRadius = (baseRadius: number) => {
+  if (typeof window === 'undefined') return baseRadius;
+
+  // Reference viewport height (design baseline)
+  const referenceHeight = 844; // iPhone 14 Pro height
+  const currentHeight = viewportHeight.value;
+
+  // Scale factor: smaller screens need larger radius to fit model
+  const scaleFactor = Math.max(0.6, Math.min(1.4, referenceHeight / currentHeight)) ;
+
+  return baseRadius * scaleFactor;
+};
+
+const mobileStartRadius = computed(() => {
+  const baseRadius = isMobile.value ? 50 : 45;
+  return isMobile.value ? getResponsiveRadius(baseRadius) : baseRadius;
+});
+
+const mobileEndRadius = computed(() => {
+  const baseRadius = isMobile.value ? 22 : 20;
+  return isMobile.value ? getResponsiveRadius(baseRadius) : baseRadius;
+});
 
 const { scrollProgress, easedScrollProgress, cameraRadius, isScrolling } = useScrollCamera({
   startRadius: mobileStartRadius,
@@ -167,6 +192,18 @@ onMounted(() => {
 
   // Wait a bit for TresCanvas to create the canvas
   setTimeout(findCanvas, 100);
+
+  // Track viewport height changes for responsive camera scaling
+  const handleResize = () => {
+    viewportHeight.value = window.innerHeight;
+  };
+
+  window.addEventListener('resize', handleResize);
+
+  // Cleanup on unmount
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+  });
 });
 </script>
 
@@ -307,7 +344,7 @@ onMounted(() => {
               :is-scrolling-active="isScrolling"
               @camera-ready="onCameraReady"
               @model-ready="
-                (model) => console.log('[Index] Model ready:', model)
+                (model: THREE.Object3D) => console.log('[Index] Model ready:', model)
               "
               @loading-started="onLoadingStarted"
               @loading-progress="onLoadingProgress"
@@ -379,11 +416,8 @@ onMounted(() => {
 
       <!-- 3D Model Section with gradient masks -->
       <div class="relative h-[60vh] overflow-hidden bg-[#F7F9F7]">
-        <!-- Top gradient fade -->
-        <div class="mobile-model-gradient-top"></div>
-
-        <!-- 3D Canvas -->
-        <div class="absolute inset-0">
+        <!-- 3D Canvas - positioned with more space at bottom (25% from top, 75% from bottom) -->
+        <div class="absolute left-0 right-0 top-3/4 -translate-y-3/4" style="height: 100vh;">
           <TresCanvas
             clear-color="#F7F9F7"
             :camera="activeCamera || undefined"
@@ -396,13 +430,16 @@ onMounted(() => {
               :is-scrolling-active="isScrolling"
               responsive-mode="mobile"
               @camera-ready="onCameraReady"
-              @model-ready="(model) => console.log('[Index] Model ready:', model)"
+              @model-ready="(model: THREE.Object3D) => console.log('[Index] Model ready:', model)"
               @loading-started="onLoadingStarted"
               @loading-progress="onLoadingProgress"
               @loading-complete="onLoadingComplete"
             />
           </TresCanvas>
         </div>
+
+        <!-- Top gradient fade -->
+        <div class="mobile-model-gradient-top"></div>
 
         <!-- Bottom gradient fade -->
         <div class="mobile-model-gradient-bottom"></div>

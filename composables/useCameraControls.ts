@@ -171,7 +171,8 @@ export function useCameraControls(config: CameraControlConfig = {}) {
    */
   const updateCameraPosition = (
     effectiveRadius?: number,
-    deltaTime?: number
+    deltaTime?: number,
+    phiAdjustment?: number
   ) => {
     if (!runtimeCamera.value || !lookAtTarget.value) return
 
@@ -188,16 +189,21 @@ export function useCameraControls(config: CameraControlConfig = {}) {
     currentSpherical.value.phi +=
       (targetSpherical.value.phi - currentSpherical.value.phi) * damping
 
-    // Get look-at target world position
+    // Get look-at target world position (original position for camera placement)
     const targetWorldPos = new THREE.Vector3()
     lookAtTarget.value.getWorldPosition(targetWorldPos)
 
-    // Calculate camera position from spherical coordinates
+    // Apply phi adjustment if provided (for mobile viewport angle adjustment)
+    const adjustedPhi = phiAdjustment !== undefined
+      ? currentSpherical.value.phi + phiAdjustment
+      : currentSpherical.value.phi
+
+    // Calculate camera position from spherical coordinates (with adjusted phi)
     const radius = effectiveRadius ?? sphericalCoords.value.radius
     const cameraOffset = sphericalToCartesian(
       radius,
       currentSpherical.value.theta,
-      currentSpherical.value.phi
+      adjustedPhi
     )
 
     // Set camera position relative to look-at target

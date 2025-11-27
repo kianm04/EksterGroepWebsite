@@ -23,7 +23,7 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "BSqnj_gG.js",
+    "file": "e7zF8qCV.js",
     "name": "error-404",
     "src": "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-404.vue",
     "isDynamicEntry": true,
@@ -67,7 +67,7 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "Dq4YzNwd.js",
+    "file": "O9XO8xDZ.js",
     "name": "entry",
     "src": "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
     "isEntry": true,
@@ -76,11 +76,11 @@ const client_manifest = {
       "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/error-500.vue"
     ],
     "css": [
-      "entry.CIt9GVra.css"
+      "entry.BAX3yfmL.css"
     ]
   },
-  "entry.CIt9GVra.css": {
-    "file": "entry.CIt9GVra.css",
+  "entry.BAX3yfmL.css": {
+    "file": "entry.BAX3yfmL.css",
     "resourceType": "style",
     "prefetch": true,
     "preload": true
@@ -90,7 +90,7 @@ const client_manifest = {
     "module": true,
     "prefetch": true,
     "preload": true,
-    "file": "BNyNu6VL.js",
+    "file": "CyeTw4Rh.js",
     "name": "index",
     "src": "pages/index.vue",
     "isDynamicEntry": true,
@@ -98,12 +98,10 @@ const client_manifest = {
       "node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/entry.js",
       "_DlAUqK2U.js"
     ],
-    "css": [
-      "index.3DuC5JJb.css"
-    ]
+    "css": []
   },
-  "index.3DuC5JJb.css": {
-    "file": "index.3DuC5JJb.css",
+  "index.CntwdPwa.css": {
+    "file": "index.CntwdPwa.css",
     "resourceType": "style",
     "prefetch": true,
     "preload": true
