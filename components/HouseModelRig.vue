@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 // Always load the GLTF model (Vue 3 Composition API requirement)
 // The model will start downloading after a delay
-const { state, progress } = useGLTF("/models/ok12b_circle_rig.glb", {
+const { state, progress } = useGLTF("/models/ok10b_circle.glb", {
   draco: true
 });
 
