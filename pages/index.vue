@@ -80,6 +80,34 @@ const section2Opacity = computed(() => {
   return Math.max(0, Math.min(1, (easedScrollProgress.value - 0.5) * 2));
 });
 
+// Dynamic overlap for Section 2 sliding over 3D model (mobile only)
+// Uses viewport-relative sizing for cross-device compatibility
+// Goal: Keep 3D model center visible by having Section 2 cover bottom half of 3D viewport
+const section2OverlapPx = computed(() => {
+  if (!isMobile.value) return 0;
+
+  // Max overlap is 30% of viewport height (half of 60vh 3D section)
+  // This ensures the 3D model center stays centered between page top and Section 2
+  const maxOverlapVh = 0.30;
+  const maxOverlapPx = viewportHeight.value * maxOverlapVh;
+
+  // Overlap increases as user scrolls (tied to eased scroll progress)
+  return Math.round(easedScrollProgress.value * maxOverlapPx);
+});
+
+// Dynamic canvas vertical offset for mobile - keeps house visible throughout scroll
+// At page top: positioned higher (-75%) so house is visible
+// When scrolled: positioned lower (-45%) so house center stays visible with overlap
+const mobileCanvasTranslateY = computed(() => {
+  if (!isMobile.value) return 75; // Default for desktop (won't be used)
+
+  const startOffset = 75; // At scroll start: house visible at top
+  const endOffset = 45;   // At scroll end: house centered for overlap
+
+  // Interpolate based on scroll progress
+  return startOffset - (easedScrollProgress.value * (startOffset - endOffset));
+});
+
 // Check localStorage for cached state
 const checkCachedModelState = () => {
   if (typeof window !== "undefined") {
@@ -414,10 +442,13 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 3D Model Section with gradient masks -->
-      <div class="relative h-[60vh] overflow-hidden bg-[#F7F9F7]">
-        <!-- 3D Canvas - positioned with more space at bottom (25% from top, 75% from bottom) -->
-        <div class="absolute left-0 right-0 top-3/4 -translate-y-3/4" style="height: 100vh;">
+      <!-- 3D Model Section - extended height for overlap, overflow-hidden clips top -->
+      <div class="relative h-[90vh] overflow-hidden bg-[#F7F9F7] z-0">
+        <!-- 3D Canvas - dynamic position based on scroll for house visibility -->
+        <div
+          class="absolute left-0 right-0 top-[40%]"
+          :style="{ transform: `translateY(-${mobileCanvasTranslateY}%)`, height: '100vh' }"
+        >
           <TresCanvas
             clear-color="#F7F9F7"
             :camera="activeCamera || undefined"
@@ -449,8 +480,11 @@ onMounted(() => {
         <div class="mobile-model-gradient-right"></div>
       </div>
 
-      <!-- Section 2: Additional content -->
-      <div class="px-3 py-8 bg-[#F7F9F7]">
+      <!-- Section 2: Additional content - slides over 3D model -->
+      <div
+        class="px-3 pb-8 relative z-10"
+        :style="{ marginTop: `-${section2OverlapPx}px` }"
+      >
         <div class="mobile-text-card">
           <h2 class="text-xl font-light text-gray-900 mb-4">
             Discover Our Craftsmanship
