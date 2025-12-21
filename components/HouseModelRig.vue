@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onUnmounted, onMounted, ref, shallowRef, watch, nextTick, markRaw } from "vue";
 import * as THREE from "three";
-import { useGLTF } from "@tresjs/cientos";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import WhiteCubePlaceholder from "./WhiteCubePlaceholder.vue";
 import { useCameraControls } from "~/composables/useCameraControls";
+import { useModelCache } from "~/composables/useModelCache";
 
 const props = withDefaults(defineProps<{
   canvasElement?: HTMLCanvasElement | null;
@@ -12,8 +14,10 @@ const props = withDefaults(defineProps<{
   scrollControlledRadius?: number | null;
   isScrollingActive?: boolean;
   responsiveMode?: 'desktop' | 'mobile';
+  cameraYOffset?: number;
 }>(), {
-  modelPath: '/models/ok10b_circle.glb'
+  modelPath: '/models/ok10b_circle.glb',
+  cameraYOffset: 0
 });
 
 const emit = defineEmits<{
@@ -24,13 +28,15 @@ const emit = defineEmits<{
   "loading-complete": [];
 }>();
 
-// Load the GLTF model using the provided path
-const { state, isLoading: gltfLoading } = useGLTF(props.modelPath, {
-  draco: true
-});
+// Model cache for instant switching
+const { getCachedModel, setCachedModel, isModelCached } = useModelCache();
 
-// Track loading state
-const hasEmittedComplete = ref(false);
+// Current scene being displayed
+const currentScene = shallowRef<THREE.Group | null>(null);
+
+// Loading state
+const isLoadingModel = ref(false);
+const hasLoadedFirstModel = ref(false);
 
 // House model reference (only used when loading model)
 const houseModel = shallowRef<THREE.Object3D | null>(null);
@@ -38,7 +44,60 @@ const houseModel = shallowRef<THREE.Object3D | null>(null);
 // Fade transition state
 const cubeOpacity = ref(1);
 const modelOpacity = ref(0);
-const showHouseModel = computed(() => props.loadModel && hasEmittedComplete.value);
+const showHouseModel = computed(() => props.loadModel && hasLoadedFirstModel.value);
+
+// GLTF loader instances (created once, reused)
+let gltfLoader: GLTFLoader | null = null;
+let dracoLoader: DRACOLoader | null = null;
+
+const getLoader = (): GLTFLoader => {
+  if (!gltfLoader) {
+    dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('/libs/draco/');
+    gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+  }
+  return gltfLoader;
+};
+
+/**
+ * Load a model from path, using cache if available
+ * NOTE: Does NOT set currentScene - caller must do that after processing
+ */
+const loadModel = async (path: string): Promise<THREE.Group | null> => {
+  // Check cache first for instant switching
+  if (isModelCached(path)) {
+    console.log(`[HouseModelRig] Using cached model: ${path}`);
+    const cachedScene = getCachedModel(path);
+    if (cachedScene) {
+      return cachedScene;
+    }
+  }
+
+  // Load new model
+  console.log(`[HouseModelRig] Loading model: ${path}`);
+  isLoadingModel.value = true;
+  emit("loading-started");
+
+  try {
+    const loader = getLoader();
+    const gltf = await loader.loadAsync(path);
+    const scene = gltf.scene;
+
+    // Cache the loaded scene (but don't display yet)
+    setCachedModel(path, scene);
+
+    console.log(`[HouseModelRig] Model loaded and cached: ${path}`);
+    isLoadingModel.value = false;
+    emit("loading-complete");
+
+    return scene;
+  } catch (error) {
+    console.error(`[HouseModelRig] Failed to load model: ${path}`, error);
+    isLoadingModel.value = false;
+    return null;
+  }
+};
 
 // Use the shared camera controls composable
 const {
@@ -47,6 +106,7 @@ const {
   sphericalCoords,
   isInteracting,
   initializeFromCamera,
+  updateCameraReference,
   createDefaultCamera,
   startInteraction,
   updateInteraction,
@@ -104,32 +164,29 @@ let rafId: number | null = null;
 // Track if scene is already initialized
 let sceneInitialized = false;
 
-// Computed property for the GLTF scene
-const scene = computed(() => state.value?.scene ?? null);
-
-// Watch loading state for updates
-watch(gltfLoading, (loading, wasLoading) => {
-  if (loading && !wasLoading) {
-    console.log("[HouseModelRig] Loading started");
-    emit("loading-started");
-  }
-}, { immediate: true });
-
-// Watch for scene to be loaded (always emit complete event)
+// Watch for modelPath changes to load/switch models
 watch(
-  scene,
-  (loadedScene) => {
-    console.log(
-      "[HouseModelRig] Scene changed:",
-      loadedScene ? "loaded" : "null"
-    );
+  () => props.modelPath,
+  async (newPath, oldPath) => {
+    if (!newPath) return;
 
-    if (loadedScene && !hasEmittedComplete.value) {
-      console.log(
-        "[HouseModelRig] Scene is loaded! Emitting loading-complete event"
-      );
-      hasEmittedComplete.value = true;
-      emit("loading-complete");
+    // Skip if same path and we already have a scene
+    if (newPath === oldPath && currentScene.value) return;
+
+    console.log(`[HouseModelRig] Model path changed: ${oldPath} -> ${newPath}`);
+
+    // Load the model (from cache or network) - does NOT display yet
+    const scene = await loadModel(newPath);
+
+    if (scene && props.loadModel) {
+      // Always process scene to ensure camera references are correct
+      // This is fast (just traverses scene) and ensures proper camera setup
+      await processScene(scene);
+
+      // Display the scene after camera is properly set up
+      currentScene.value = scene;
+      hasLoadedFirstModel.value = true;
+      console.log(`[HouseModelRig] Scene displayed: ${newPath}`);
     }
   },
   { immediate: true }
@@ -284,8 +341,13 @@ const processScene = async (loadedScene: THREE.Object3D) => {
     const camera = foundCamera as THREE.PerspectiveCamera;
     const target = foundLookAtTarget as THREE.Object3D;
 
-    // Initialize camera controls from the loaded camera
-    initializeFromCamera(camera, target);
+    // First load: initialize camera angles from scene
+    // Model switch: preserve current viewing angles for smooth transition
+    if (!hasLoadedFirstModel.value) {
+      initializeFromCamera(camera, target);
+    } else {
+      updateCameraReference(camera, target);
+    }
 
     // Remove camera from any parent (no longer attached to rig)
     if (camera.parent) {
@@ -303,20 +365,6 @@ const processScene = async (loadedScene: THREE.Object3D) => {
   }
 };
 
-// Watch for scene changes to extract camera and model from GLTF
-watch(
-  scene,
-  async (loadedScene) => {
-    if (!loadedScene) return;
-
-    // Don't process the scene until user initiates load
-    if (!props.loadModel) return;
-
-    await processScene(loadedScene);
-  },
-  { immediate: true }
-);
-
 // Initialize camera system on mount
 onMounted(() => {
   initializeCameraSystem();
@@ -325,10 +373,10 @@ onMounted(() => {
 // Watch for loadModel prop changes to process scene when user initiates load
 watch(
   () => props.loadModel,
-  (shouldLoad) => {
-    if (shouldLoad && scene.value) {
+  async (shouldLoad) => {
+    if (shouldLoad && currentScene.value) {
       // Re-trigger scene processing when user initiates load
-      processScene(scene.value);
+      await processScene(currentScene.value);
     }
   }
 );
@@ -368,8 +416,8 @@ function startLoop() {
 }
 
 function loop() {
-  // Update camera position with mobile phi adjustment for viewport angle
-  updateCameraPosition(effectiveRadius.value, undefined, mobilePhiAdjustment.value);
+  // Update camera position with mobile phi adjustment and model-specific Y offset
+  updateCameraPosition(effectiveRadius.value, undefined, mobilePhiAdjustment.value, props.cameraYOffset);
 
   rafId = requestAnimationFrame(loop);
 }
@@ -391,13 +439,15 @@ onUnmounted(() => {
   />
 
   <!-- House model - only show when button clicked and model is loaded -->
+  <!-- Key forces primitive remount when model changes, ensuring proper scene graph update -->
   <primitive
-    v-if="scene && showHouseModel"
-    :object="scene"
+    v-if="currentScene && showHouseModel"
+    :key="props.modelPath"
+    :object="currentScene"
   />
 
-  <!-- Always render the camera -->
-  <primitive v-if="runtimeCamera" :object="runtimeCamera" attach="camera" />
+  <!-- Always render the camera - key ensures proper update when model changes -->
+  <primitive v-if="runtimeCamera" :key="`camera-${props.modelPath}`" :object="runtimeCamera" attach="camera" />
 
   <TresAmbientLight :intensity="3" />
 </template>

@@ -46,7 +46,7 @@ export const MODELS: ModelConfig[] = [
   {
     id: 'br62b',
     name: 'Ekster House 2',
-    path: '/models/br62b_circle.glb',
+    path: '/models/BIJBRAM.glb',
     buttonLabel: 'Huis 2',
     description: 'Secondary architectural visualization',
 
@@ -61,6 +61,7 @@ export const MODELS: ModelConfig[] = [
       sphericalRadius: 45,
       initialTheta: Math.atan2(30, 30),
       initialPhi: Math.PI / 3,
+      yOffset: 15, // Compensate for different lookAtTarget height
     },
 
     placeholder: {

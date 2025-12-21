@@ -135,6 +135,8 @@ declare global {
   const useLoop: typeof import('@tresjs/core').useLoop
   const useMask: typeof import('@tresjs/cientos').useMask
   const useModel: typeof import('vue').useModel
+  const useModelCache: typeof import('../../composables/useModelCache').useModelCache
+  const useModelCarousel: typeof import('../../composables/useModelCarousel').useModelCarousel
   const useModelLoader: typeof import('../../composables/useModelLoader').useModelLoader
   const useNuxtApp: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/nuxt').useNuxtApp
   const useNuxtData: typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
@@ -222,6 +224,9 @@ declare global {
   // @ts-ignore
   export type { CameraControlConfig, SphericalCoordinates } from '../../composables/useCameraControls'
   import('../../composables/useCameraControls')
+  // @ts-ignore
+  export type { UseModelCarouselConfig } from '../../composables/useModelCarousel'
+  import('../../composables/useModelCarousel')
   // @ts-ignore
   export type { UseModelLoaderOptions, UseModelLoaderReturn } from '../../composables/useModelLoader'
   import('../../composables/useModelLoader')
@@ -376,6 +381,8 @@ declare module 'vue' {
     readonly useLoop: UnwrapRef<typeof import('@tresjs/core')['useLoop']>
     readonly useMask: UnwrapRef<typeof import('@tresjs/cientos')['useMask']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
+    readonly useModelCache: UnwrapRef<typeof import('../../composables/useModelCache')['useModelCache']>
+    readonly useModelCarousel: UnwrapRef<typeof import('../../composables/useModelCarousel')['useModelCarousel']>
     readonly useModelLoader: UnwrapRef<typeof import('../../composables/useModelLoader')['useModelLoader']>
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>

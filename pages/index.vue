@@ -287,14 +287,14 @@ onMounted(() => {
             :camera="activeCamera || undefined"
             class="w-full h-full"
           >
-            <!-- HouseModelRig with dynamic model path -->
+            <!-- HouseModelRig with dynamic model path and caching -->
             <HouseModelRig
-              :key="currentModel?.id"
               :canvas-element="canvasElement"
               :load-model="true"
               :model-path="currentModel?.path"
               :scroll-controlled-radius="cameraRadius"
               :is-scrolling-active="isScrolling"
+              :camera-y-offset="currentModel?.camera?.yOffset ?? 0"
               @camera-ready="onCameraReady"
               @model-ready="
                 (model: THREE.Object3D) => console.log('[Index] Model ready:', model)
@@ -371,12 +371,12 @@ onMounted(() => {
             class="w-full h-full"
           >
             <HouseModelRig
-              :key="currentModel?.id"
               :canvas-element="canvasElement"
               :load-model="true"
               :model-path="currentModel?.path"
               :scroll-controlled-radius="cameraRadius"
               :is-scrolling-active="isScrolling"
+              :camera-y-offset="currentModel?.camera?.yOffset ?? 0"
               responsive-mode="mobile"
               @camera-ready="onCameraReady"
               @model-ready="(model: THREE.Object3D) => console.log('[Index] Model ready:', model)"

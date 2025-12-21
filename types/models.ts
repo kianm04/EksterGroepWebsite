@@ -52,6 +52,9 @@ export interface ModelConfig {
 
     /** Initial phi angle (vertical rotation) */
     initialPhi?: number;
+
+    /** Y offset to adjust camera height (compensates for different lookAtTarget positions) */
+    yOffset?: number;
   };
 
   /** Placeholder configuration */

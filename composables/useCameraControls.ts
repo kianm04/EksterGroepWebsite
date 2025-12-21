@@ -38,18 +38,18 @@ export function useCameraControls(config: CameraControlConfig = {}) {
   const sphericalCoords = ref<SphericalCoordinates>({
     radius: baseRadius,
     theta: 0,
-    phi: Math.PI / 3
+    phi: Math.PI / 4 // Higher initial camera position (45 degrees vs 60)
   })
 
   // Target and current spherical coords for smooth transitions
   const targetSpherical = ref({
     theta: 0,
-    phi: Math.PI / 3
+    phi: Math.PI / 4
   })
 
   const currentSpherical = ref({
     theta: 0,
-    phi: Math.PI / 3
+    phi: Math.PI / 4
   })
 
   // Interaction state
@@ -114,6 +114,19 @@ export function useCameraControls(config: CameraControlConfig = {}) {
   }
 
   /**
+   * Update camera and target references without recalculating angles.
+   * Use this when switching between models to preserve the current viewing angle.
+   */
+  const updateCameraReference = (
+    camera: THREE.PerspectiveCamera,
+    target: THREE.Object3D
+  ) => {
+    runtimeCamera.value = markRaw(camera)
+    lookAtTarget.value = markRaw(target)
+    // Keep current spherical coordinates - don't recalculate from camera position
+  }
+
+  /**
    * Create a default camera if none exists
    */
   const createDefaultCamera = (): THREE.PerspectiveCamera => {
@@ -172,7 +185,8 @@ export function useCameraControls(config: CameraControlConfig = {}) {
   const updateCameraPosition = (
     effectiveRadius?: number,
     deltaTime?: number,
-    phiAdjustment?: number
+    phiAdjustment?: number,
+    yOffset?: number
   ) => {
     if (!runtimeCamera.value || !lookAtTarget.value) return
 
@@ -206,6 +220,11 @@ export function useCameraControls(config: CameraControlConfig = {}) {
       adjustedPhi
     )
 
+    // Apply Y offset to compensate for different lookAtTarget heights between models
+    if (yOffset) {
+      cameraOffset.y += yOffset
+    }
+
     // Set camera position relative to look-at target
     runtimeCamera.value.position.copy(targetWorldPos).add(cameraOffset)
 
@@ -226,7 +245,7 @@ export function useCameraControls(config: CameraControlConfig = {}) {
    */
   const resetCamera = () => {
     targetSpherical.value.theta = 0
-    targetSpherical.value.phi = Math.PI / 3
+    targetSpherical.value.phi = Math.PI / 4
   }
 
   return {
@@ -245,6 +264,7 @@ export function useCameraControls(config: CameraControlConfig = {}) {
 
     // Functions
     initializeFromCamera,
+    updateCameraReference,
     createDefaultCamera,
     startInteraction,
     updateInteraction,
