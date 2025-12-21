@@ -3,34 +3,33 @@ import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import * as THREE from "three";
 import { TresCanvas } from "@tresjs/core";
 import HouseModelRig from "~/components/HouseModelRig.vue";
-import ModelSelector from "~/components/ModelSelector.vue";
-// MobileViewportContainer kept for potential future use, but not used in new mobile layout
-// import MobileViewportContainer from "~/components/MobileViewportContainer.vue";
+import ModelCarouselNav from "~/components/ModelCarouselNav.vue";
 import Navigation from "~/components/Navigation.vue";
-import { MODELS, getModelById, STORAGE_KEYS } from "~/config/models";
-import type { ModelConfig } from "~/types/models";
 import { useScrollCamera } from "~/composables/useScrollCamera";
 import { useResponsive } from "~/composables/useResponsive";
+import { useModelCarousel } from "~/composables/useModelCarousel";
 
 // Use responsive composable
 const { isMobile, isTablet, isDesktop } = useResponsive();
 
+// Use model carousel composable
+const {
+  currentModel,
+  currentIndex,
+  canGoNext,
+  canGoPrevious,
+  goNext,
+  goPrevious,
+  isLoading,
+  setLoading,
+  markModelLoaded,
+} = useModelCarousel({ autoLoadFirst: true });
+
 const activeCamera = ref<THREE.PerspectiveCamera | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 
-// Model loading state (backward compatibility with single model)
-const showModel = ref(false);
-const isLoadingModel = ref(false);
+// Model loading state
 const modelLoaded = ref(false);
-const userInitiatedLoad = ref(false); // Track if user clicked the load button
-
-// Multi-model state
-const selectedModelId = ref<string | null>(null);
-const loadingModelId = ref<string | null>(null);
-const loadedModelIds = ref<string[]>([]);
-const selectedModel = computed(() =>
-  selectedModelId.value ? getModelById(selectedModelId.value) : null
-);
 
 // Scroll-based camera control (enabled for both desktop and mobile)
 // Use computed values so radius updates reactively when viewport changes
@@ -108,107 +107,34 @@ const mobileCanvasTranslateY = computed(() => {
   return startOffset - (easedScrollProgress.value * (startOffset - endOffset));
 });
 
-// Check localStorage for cached state
-const checkCachedModelState = () => {
-  if (typeof window !== "undefined") {
-    const cached = localStorage.getItem(STORAGE_KEYS.MODEL_LOADED);
-    const userInitiated = localStorage.getItem(STORAGE_KEYS.USER_INITIATED);
-    if (cached === "true" && userInitiated === "true") {
-      showModel.value = true;
-      modelLoaded.value = true;
-      userInitiatedLoad.value = true;
-    }
-  }
-};
-
 const onCameraReady = (camera: THREE.PerspectiveCamera) => {
   activeCamera.value = camera;
 };
 
 const onLoadingStarted = () => {
   console.log("[Index] Loading started");
-  isLoadingModel.value = true;
+  setLoading(true);
 };
 
 const onLoadingProgress = (progress: number) => {
-  // Could display progress if needed
   console.log(`[Index] Loading progress: ${progress}%`);
+  setLoading(true, progress);
 };
 
 const onLoadingComplete = () => {
-  console.log("[Index] Loading complete! Setting modelLoaded = true");
-  isLoadingModel.value = false;
+  console.log("[Index] Loading complete!");
+  setLoading(false);
   modelLoaded.value = true;
-  console.log("[Index] modelLoaded value:", modelLoaded.value);
 
-  // Update multi-model state
-  if (loadingModelId.value) {
-    loadedModelIds.value.push(loadingModelId.value);
-    loadingModelId.value = null;
-  }
-
-  // Save to localStorage only if user initiated the load
-  if (typeof window !== "undefined" && userInitiatedLoad.value) {
-    localStorage.setItem(STORAGE_KEYS.MODEL_LOADED, "true");
-    localStorage.setItem(STORAGE_KEYS.USER_INITIATED, "true");
+  // Mark current model as loaded in carousel
+  if (currentModel.value) {
+    markModelLoaded(currentModel.value.id);
   }
 };
-
-const loadHouseModel = () => {
-  if (!isLoadingModel.value && !userInitiatedLoad.value) {
-    userInitiatedLoad.value = true;
-    showModel.value = true;
-  }
-};
-
-// Handler for model selection (switching between already loaded models)
-const handleSelectModel = (modelId: string) => {
-  selectedModelId.value = modelId;
-  // Update backward compatibility flags
-  if (modelId === 'house-circle-rig') {
-    showModel.value = true;
-  }
-};
-
-// Handler for loading a new model
-const handleLoadModel = (modelId: string) => {
-  if (loadingModelId.value) return; // Already loading something
-
-  const model = getModelById(modelId);
-  if (!model) return;
-
-  // For the main house model, use existing logic
-  if (modelId === 'house-circle-rig') {
-    userInitiatedLoad.value = true;
-    showModel.value = true;
-    selectedModelId.value = modelId;
-    loadingModelId.value = modelId;
-  } else {
-    // Future models will be handled here
-    selectedModelId.value = modelId;
-    loadingModelId.value = modelId;
-    // Note: Actual loading logic for other models to be implemented
-    // when we have ModelRig component
-  }
-};
-
-// Watch for modelLoaded changes
-watch(modelLoaded, (newValue) => {
-  console.log("[Index] modelLoaded changed to:", newValue);
-  console.log("[Index] Cube should now be:", newValue ? "hidden" : "visible");
-});
 
 // Set up canvas reference
 onMounted(() => {
-  // Check for cached model state
-  checkCachedModelState();
-
-  console.log(
-    "[Index] Initial state - showModel:",
-    showModel.value,
-    "modelLoaded:",
-    modelLoaded.value
-  );
+  console.log("[Index] Initial model:", currentModel.value?.name);
 
   // Find canvas element once TresCanvas is mounted
   const findCanvas = () => {
@@ -361,13 +287,12 @@ onMounted(() => {
             :camera="activeCamera || undefined"
             class="w-full h-full"
           >
-            <!-- Show white cube when model is not loaded -->
-            <!-- <WhiteCubePlaceholder v-if="!modelLoaded" :visible="!modelLoaded" /> -->
-
-            <!-- Consolidated HouseModelRig component handles both camera-only and model loading -->
+            <!-- HouseModelRig with dynamic model path -->
             <HouseModelRig
+              :key="currentModel?.id"
               :canvas-element="canvasElement"
-              :load-model="showModel"
+              :load-model="true"
+              :model-path="currentModel?.path"
               :scroll-controlled-radius="cameraRadius"
               :is-scrolling-active="isScrolling"
               @camera-ready="onCameraReady"
@@ -379,23 +304,14 @@ onMounted(() => {
               @loading-complete="onLoadingComplete"
             />
           </TresCanvas>
-        </div>
 
-        <!-- Model selector -->
-        <div
-          v-if="!userInitiatedLoad"
-          class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
-        >
-          <ModelSelector
-            :models="MODELS"
-            :selected-model-id="selectedModelId"
-            :loading-model-id="loadingModelId"
-            :loaded-model-ids="loadedModelIds"
-            :is-any-loading="isLoadingModel"
-            variant="horizontal"
-            :show-file-sizes="true"
-            @select-model="handleSelectModel"
-            @load-model="handleLoadModel"
+          <!-- Model carousel navigation arrows -->
+          <ModelCarouselNav
+            :can-go-next="canGoNext"
+            :can-go-previous="canGoPrevious"
+            :is-loading="isLoading"
+            @next="goNext"
+            @previous="goPrevious"
           />
         </div>
       </div>
@@ -455,8 +371,10 @@ onMounted(() => {
             class="w-full h-full"
           >
             <HouseModelRig
+              :key="currentModel?.id"
               :canvas-element="canvasElement"
-              :load-model="showModel"
+              :load-model="true"
+              :model-path="currentModel?.path"
               :scroll-controlled-radius="cameraRadius"
               :is-scrolling-active="isScrolling"
               responsive-mode="mobile"
@@ -468,6 +386,15 @@ onMounted(() => {
             />
           </TresCanvas>
         </div>
+
+        <!-- Model carousel navigation arrows -->
+        <ModelCarouselNav
+          :can-go-next="canGoNext"
+          :can-go-previous="canGoPrevious"
+          :is-loading="isLoading"
+          @next="goNext"
+          @previous="goPrevious"
+        />
 
         <!-- Top gradient fade -->
         <div class="mobile-model-gradient-top"></div>
@@ -511,7 +438,7 @@ onMounted(() => {
 
       <!-- Fixed scroll indicator at bottom center -->
       <div
-        class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-20"
+        class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20"
         :style="{ opacity: section1Opacity }"
       >
         <div class="mobile-scroll-indicator">
@@ -522,24 +449,6 @@ onMounted(() => {
             <div class="w-1 h-1 bg-gray-500 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
           </div>
         </div>
-      </div>
-
-      <!-- Mobile Model Selector (floating at bottom) -->
-      <div
-        v-if="!userInitiatedLoad"
-        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20"
-      >
-        <ModelSelector
-          :models="MODELS"
-          :selected-model-id="selectedModelId"
-          :loading-model-id="loadingModelId"
-          :loaded-model-ids="loadedModelIds"
-          :is-any-loading="isLoadingModel"
-          variant="horizontal"
-          :show-file-sizes="false"
-          @select-model="handleSelectModel"
-          @load-model="handleLoadModel"
-        />
       </div>
     </div>
   </div>

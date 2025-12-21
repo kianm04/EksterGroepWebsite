@@ -5,13 +5,16 @@ import { useGLTF } from "@tresjs/cientos";
 import WhiteCubePlaceholder from "./WhiteCubePlaceholder.vue";
 import { useCameraControls } from "~/composables/useCameraControls";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   canvasElement?: HTMLCanvasElement | null;
   loadModel?: boolean;
+  modelPath?: string;
   scrollControlledRadius?: number | null;
   isScrollingActive?: boolean;
-  responsiveMode?: 'desktop' | 'mobile'; // New prop for responsive behavior
-}>();
+  responsiveMode?: 'desktop' | 'mobile';
+}>(), {
+  modelPath: '/models/ok10b_circle.glb'
+});
 
 const emit = defineEmits<{
   "camera-ready": [camera: THREE.PerspectiveCamera];
@@ -21,14 +24,12 @@ const emit = defineEmits<{
   "loading-complete": [];
 }>();
 
-// Always load the GLTF model (Vue 3 Composition API requirement)
-// The model will start downloading after a delay
-const { state, progress } = useGLTF("/models/ok10b_circle.glb", {
+// Load the GLTF model using the provided path
+const { state, isLoading: gltfLoading } = useGLTF(props.modelPath, {
   draco: true
 });
 
 // Track loading state
-const isModelLoading = ref(false);
 const hasEmittedComplete = ref(false);
 
 // House model reference (only used when loading model)
@@ -106,22 +107,13 @@ let sceneInitialized = false;
 // Computed property for the GLTF scene
 const scene = computed(() => state.value?.scene ?? null);
 
-// Watch progress for loading updates (always fire events)
-watch(progress, (newProgress) => {
-  console.log("[HouseModelRig] Progress:", newProgress);
-
-  if (newProgress > 0 && !isModelLoading.value) {
-    console.log("[HouseModelRig] Starting load");
-    isModelLoading.value = true;
+// Watch loading state for updates
+watch(gltfLoading, (loading, wasLoading) => {
+  if (loading && !wasLoading) {
+    console.log("[HouseModelRig] Loading started");
     emit("loading-started");
   }
-
-  if (newProgress > 0 && newProgress < 1) {
-    const percentage = Math.round(newProgress * 100);
-    console.log(`[HouseModelRig] Progress: ${percentage}%`);
-    emit("loading-progress", percentage);
-  }
-});
+}, { immediate: true });
 
 // Watch for scene to be loaded (always emit complete event)
 watch(
@@ -137,7 +129,6 @@ watch(
         "[HouseModelRig] Scene is loaded! Emitting loading-complete event"
       );
       hasEmittedComplete.value = true;
-      isModelLoading.value = false;
       emit("loading-complete");
     }
   },
@@ -270,8 +261,8 @@ const processScene = async (loadedScene: THREE.Object3D) => {
       foundLookAtTarget = child as THREE.Object3D;
     } else if (child.name === "Camera") {
       foundCamera = child as THREE.PerspectiveCamera;
-    } else if (child.name === "ok10b11291") {
-      // Found the house mesh!
+    } else if (child.type === "Mesh" && !foundHouseModel) {
+      // Use the first mesh found as the house model
       foundHouseModel = child as THREE.Object3D;
       console.log("Found house model:", child.name);
     }

@@ -10,14 +10,13 @@ import type { ModelConfig, ModelConfigWithDefaults, MODEL_DEFAULTS } from '~/typ
  */
 export const MODELS: ModelConfig[] = [
   {
-    id: 'house-circle-rig',
+    id: 'ok10b',
     name: 'Ekster House',
-    path: '/models/ok12b_circle_rig.glb',
-    buttonLabel: 'Laad huis',
-    description: 'Architectural visualization of the main house with circular rig',
+    path: '/models/ok10b_circle.glb',
+    buttonLabel: 'Huis 1',
+    description: 'Primary architectural visualization',
 
     sceneObjects: {
-      meshName: 'ok10b11291',
       cameraName: 'Camera',
       lookAtTargetName: 'EmptyLookAtTarget',
     },
@@ -37,52 +36,47 @@ export const MODELS: ModelConfig[] = [
     },
 
     loading: {
-      fileSize: '25.3 MB',
+      fileSize: '~25 MB',
       loadingMessage: 'Loading house model...',
       useDraco: true,
     },
 
     tags: ['architecture', 'residential', 'main'],
   },
-
-  // Example configuration for a second model (to be added later)
-  /*
   {
-    id: 'office-building',
-    name: 'Office Complex',
-    path: '/models/office_complex.glb',
-    buttonLabel: 'Laad kantoor',
-    description: 'Modern office building design',
+    id: 'br62b',
+    name: 'Ekster House 2',
+    path: '/models/br62b_circle.glb',
+    buttonLabel: 'Huis 2',
+    description: 'Secondary architectural visualization',
 
     sceneObjects: {
-      meshName: 'office_mesh',
       cameraName: 'Camera',
-      lookAtTargetName: 'CameraTarget',
+      lookAtTargetName: 'EmptyLookAtTarget',
     },
 
     camera: {
-      position: [40, 25, 40],
-      fov: 45,
-      sphericalRadius: 50,
-      initialTheta: Math.PI / 4,
-      initialPhi: Math.PI / 3.5,
+      position: [30, 20, 30],
+      fov: 50,
+      sphericalRadius: 45,
+      initialTheta: Math.atan2(30, 30),
+      initialPhi: Math.PI / 3,
     },
 
     placeholder: {
-      dimensions: [20, 18, 20],
-      rotation: [0, Math.PI / 4, 0],
-      color: '#FAFAFA',
+      dimensions: [15, 12, 15],
+      rotation: [0, Math.PI / 6, 0],
+      color: '#FFFFFF',
     },
 
     loading: {
-      fileSize: '18.7 MB',
-      loadingMessage: 'Loading office model...',
+      fileSize: '~25 MB',
+      loadingMessage: 'Loading house model...',
       useDraco: true,
     },
 
-    tags: ['architecture', 'commercial', 'office'],
+    tags: ['architecture', 'residential'],
   },
-  */
 ];
 
 /**
