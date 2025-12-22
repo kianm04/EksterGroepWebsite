@@ -248,6 +248,58 @@ export function useCameraControls(config: CameraControlConfig = {}) {
     targetSpherical.value.phi = Math.PI / 4
   }
 
+  /**
+   * Set target spherical coordinates directly (for page-based camera control)
+   * This bypasses auto-rotation and sets the target for smooth interpolation.
+   */
+  const setTargetCoordinates = (coords: {
+    theta?: number
+    phi?: number
+    radius?: number
+  }) => {
+    if (coords.theta !== undefined) {
+      targetSpherical.value.theta = coords.theta
+    }
+    if (coords.phi !== undefined) {
+      targetSpherical.value.phi = clampPhi(coords.phi)
+    }
+    if (coords.radius !== undefined) {
+      sphericalCoords.value.radius = coords.radius
+    }
+  }
+
+  /**
+   * Set current spherical coordinates immediately (no interpolation)
+   * Used for instant camera positioning.
+   */
+  const setImmediateCoordinates = (coords: {
+    theta?: number
+    phi?: number
+    radius?: number
+  }) => {
+    if (coords.theta !== undefined) {
+      targetSpherical.value.theta = coords.theta
+      currentSpherical.value.theta = coords.theta
+    }
+    if (coords.phi !== undefined) {
+      const clampedPhi = clampPhi(coords.phi)
+      targetSpherical.value.phi = clampedPhi
+      currentSpherical.value.phi = clampedPhi
+    }
+    if (coords.radius !== undefined) {
+      sphericalCoords.value.radius = coords.radius
+    }
+  }
+
+  /**
+   * Get current spherical coordinates (for transition starting point)
+   */
+  const getCurrentCoordinates = () => ({
+    theta: currentSpherical.value.theta,
+    phi: currentSpherical.value.phi,
+    radius: sphericalCoords.value.radius
+  })
+
   return {
     // Camera references (exposed as refs for direct access)
     runtimeCamera,
@@ -272,6 +324,9 @@ export function useCameraControls(config: CameraControlConfig = {}) {
     updateCameraPosition,
     setAutoRotation,
     resetCamera,
+    setTargetCoordinates,
+    setImmediateCoordinates,
+    getCurrentCoordinates,
     sphericalToCartesian,
     clampPhi
   }

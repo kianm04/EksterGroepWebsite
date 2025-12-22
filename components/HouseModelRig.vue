@@ -11,13 +11,18 @@ const props = withDefaults(defineProps<{
   canvasElement?: HTMLCanvasElement | null;
   loadModel?: boolean;
   modelPath?: string;
-  scrollControlledRadius?: number | null;
-  isScrollingActive?: boolean;
-  responsiveMode?: 'desktop' | 'mobile';
+  targetRadius?: number;
+  targetTheta?: number;
+  targetPhi?: number;
   cameraYOffset?: number;
+  isTransitioning?: boolean;
 }>(), {
   modelPath: '/models/ok10b_circle.glb',
-  cameraYOffset: 0
+  targetRadius: 50,
+  targetTheta: 0,
+  targetPhi: Math.PI / 4,
+  cameraYOffset: 0,
+  isTransitioning: false
 });
 
 const emit = defineEmits<{
@@ -112,51 +117,46 @@ const {
   updateInteraction,
   endInteraction,
   updateCameraPosition,
-  setAutoRotation
+  setAutoRotation,
+  setTargetCoordinates,
+  setImmediateCoordinates
 } = useCameraControls({
-  baseRadius: 45,
+  baseRadius: 50,
   autoRotationSpeed: (2 * Math.PI) / 90,
-  sensitivity: props.responsiveMode === 'mobile' ? 0.005 : 0.003, // Higher sensitivity for mobile
+  sensitivity: 0.004,
   damping: 0.08
 });
 
-// Computed effective radius (uses scroll control if provided, otherwise base)
-const effectiveRadius = computed(() => {
-  return props.scrollControlledRadius ?? sphericalCoords.value.radius;
-});
+// Watch for target coordinate changes and update camera controls
+watch(
+  () => [props.targetRadius, props.targetTheta, props.targetPhi],
+  ([radius, theta, phi]) => {
+    // During transitions, directly update coordinates for smooth animation
+    if (props.isTransitioning) {
+      setImmediateCoordinates({
+        radius: radius as number,
+        theta: theta as number,
+        phi: phi as number
+      });
+    } else {
+      // When not transitioning, use target for smooth interpolation
+      setTargetCoordinates({
+        radius: radius as number,
+        theta: theta as number,
+        phi: phi as number
+      });
+    }
+  },
+  { immediate: true }
+);
 
-// Mobile camera phi angle adjustment (vertical viewing angle)
-// Lower phi = camera higher up looking more downward
-// Higher phi = camera lower looking more upward
-const mobilePhiAdjustment = computed(() => {
-  if (props.responsiveMode !== 'mobile') return 0;
-
-  // Calculate zoom progress based on radius (50 = zoomed out, 22 = zoomed in)
-  const maxRadius = 50;
-  const minRadius = 22;
-  const currentRadius = props.scrollControlledRadius ?? maxRadius;
-
-  // zoomProgress: 0 = zoomed out (start), 1 = zoomed in (scrolled down)
-  const zoomProgress = 1 - (currentRadius - minRadius) / (maxRadius - minRadius);
-  const clampedProgress = Math.max(0, Math.min(1, zoomProgress));
-
-  // When zoomed OUT: Slight downward tilt for better framing
-  // When zoomed IN: Slight phi increase (look slightly more level) → keeps roof visible
-  const zoomedOutPhiAdjustment = -0.15; // Subtle downward angle when far
-  const zoomedInPhiAdjustment = 0.1;    // Slight upward tilt when close
-
-  // Interpolate between the two adjustments based on zoom progress
-  return zoomedOutPhiAdjustment + (zoomedInPhiAdjustment - zoomedOutPhiAdjustment) * clampedProgress;
-});
-
-// Check if scroll is actively controlling the camera (user is currently scrolling)
-const isScrollControlled = computed(() => {
-  // On mobile, disable scroll control when in free drag mode
-  if (props.responsiveMode === 'mobile') {
-    return props.isScrollingActive ?? false;
+// Disable auto-rotation during transitions
+watch(
+  () => props.isTransitioning,
+  (transitioning) => {
+    setAutoRotation(!transitioning);
   }
-  return props.isScrollingActive ?? false;
-});
+);
 
 // Animation loop
 let rafId: number | null = null;
@@ -381,33 +381,15 @@ watch(
   }
 );
 
-// Watch for canvas element to initialize listeners (only if not scroll-controlled)
+// Watch for canvas element to initialize listeners
 watch(
   () => props.canvasElement,
   (canvas) => {
-    if (canvas && !isScrollControlled.value) {
+    if (canvas) {
       initializeListeners();
     }
   },
   { immediate: true }
-);
-
-// Watch for scroll control state changes to pause/resume auto-rotation
-watch(
-  isScrollControlled,
-  (scrollControlled) => {
-    if (scrollControlled) {
-      // Scroll is active, pause auto-rotation but keep listeners
-      setAutoRotation(false);
-    } else {
-      // Scroll ended, immediately resume auto-rotation
-      setAutoRotation(true);
-      // Ensure listeners are initialized
-      if (props.canvasElement) {
-        initializeListeners();
-      }
-    }
-  }
 );
 
 function startLoop() {
@@ -416,8 +398,8 @@ function startLoop() {
 }
 
 function loop() {
-  // Update camera position with mobile phi adjustment and model-specific Y offset
-  updateCameraPosition(effectiveRadius.value, undefined, mobilePhiAdjustment.value, props.cameraYOffset);
+  // Update camera position with target radius and Y offset
+  updateCameraPosition(props.targetRadius, undefined, undefined, props.cameraYOffset);
 
   rafId = requestAnimationFrame(loop);
 }

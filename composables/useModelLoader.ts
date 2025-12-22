@@ -90,7 +90,7 @@ export function useModelLoader(
   const error = ref<Error | null>(null);
 
   // Use GLTF loader - always loads (Vue 3 requirement)
-  const { state, progress: gltfProgress } = useGLTF(modelConfig.path, {
+  const { state, isLoading: gltfIsLoading } = useGLTF(modelConfig.path, {
     draco: configWithDefaults.loading.useDraco,
   });
 
@@ -102,19 +102,13 @@ export function useModelLoader(
   // Track if we should process the scene
   const shouldProcess = ref(autoLoad);
 
-  // Watch GLTF progress
-  watch(gltfProgress, (newProgress) => {
+  // Watch GLTF loading state
+  watch(gltfIsLoading, (loading) => {
     if (!shouldProcess.value) return;
 
-    if (newProgress > 0 && !loadingState.value.isLoading) {
+    if (loading && !loadingState.value.isLoading) {
       loadingState.value.isLoading = true;
       onLoadingStart?.();
-    }
-
-    if (newProgress > 0 && newProgress < 1) {
-      loadingState.value.progress = newProgress;
-      const percentage = Math.round(newProgress * 100);
-      onProgress?.(percentage);
     }
   });
 
@@ -139,7 +133,7 @@ export function useModelLoader(
         // Save to cache
         if (typeof window !== 'undefined') {
           sessionStorage.setItem(
-            `${STORAGE_KEYS.LOADED_MODEL}_${modelConfig.id}`,
+            `${STORAGE_KEYS.MODEL_LOADED}_${modelConfig.id}`,
             'true'
           );
         }
@@ -162,7 +156,7 @@ export function useModelLoader(
    */
   function extractSceneObjects(
     scene: THREE.Object3D,
-    config: typeof configWithDefaults
+    config: NonNullable<typeof configWithDefaults>
   ): ModelSceneData {
     let camera: THREE.PerspectiveCamera | undefined;
     let lookAtTarget: THREE.Object3D | undefined;
@@ -211,7 +205,7 @@ export function useModelLoader(
     // If already loaded, trigger callbacks
     if (state.value?.scene) {
       const scene = state.value.scene;
-      const extractedData = extractSceneObjects(scene, configWithDefaults);
+      const extractedData = extractSceneObjects(scene, configWithDefaults!);
       sceneData.value = extractedData;
       loadingState.value.isLoaded = true;
       onLoadingComplete?.(extractedData);
@@ -239,7 +233,7 @@ export function useModelLoader(
    */
   function isCached(): boolean {
     if (typeof window === 'undefined') return false;
-    return sessionStorage.getItem(`${STORAGE_KEYS.LOADED_MODEL}_${modelConfig.id}`) === 'true';
+    return sessionStorage.getItem(`${STORAGE_KEYS.MODEL_LOADED}_${modelConfig.id}`) === 'true';
   }
 
   /**
@@ -247,7 +241,7 @@ export function useModelLoader(
    */
   function clearCache() {
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(`${STORAGE_KEYS.LOADED_MODEL}_${modelConfig.id}`);
+      sessionStorage.removeItem(`${STORAGE_KEYS.MODEL_LOADED}_${modelConfig.id}`);
     }
   }
 

@@ -15,11 +15,11 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 interface _GlobalComponents {
   'HouseModelRig': typeof import("../../components/HouseModelRig.vue")['default']
-  'MobileViewportContainer': typeof import("../../components/MobileViewportContainer.vue")['default']
   'ModelCarouselNav': typeof import("../../components/ModelCarouselNav.vue")['default']
   'ModelPlaceholder': typeof import("../../components/ModelPlaceholder.vue")['default']
-  'ModelSelector': typeof import("../../components/ModelSelector.vue")['default']
   'Navigation': typeof import("../../components/Navigation.vue")['default']
+  'PageContent': typeof import("../../components/PageContent.vue")['default']
+  'PageNavBar': typeof import("../../components/PageNavBar.vue")['default']
   'WhiteCubePlaceholder': typeof import("../../components/WhiteCubePlaceholder.vue")['default']
   'NuxtWelcome': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']
   'NuxtLayout': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-layout")['default']
@@ -172,11 +172,11 @@ interface _GlobalComponents {
   'Body': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/head/runtime/components")['Body']
   'NuxtIsland': typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-island")['default']
   'LazyHouseModelRig': LazyComponent<typeof import("../../components/HouseModelRig.vue")['default']>
-  'LazyMobileViewportContainer': LazyComponent<typeof import("../../components/MobileViewportContainer.vue")['default']>
   'LazyModelCarouselNav': LazyComponent<typeof import("../../components/ModelCarouselNav.vue")['default']>
   'LazyModelPlaceholder': LazyComponent<typeof import("../../components/ModelPlaceholder.vue")['default']>
-  'LazyModelSelector': LazyComponent<typeof import("../../components/ModelSelector.vue")['default']>
   'LazyNavigation': LazyComponent<typeof import("../../components/Navigation.vue")['default']>
+  'LazyPageContent': LazyComponent<typeof import("../../components/PageContent.vue")['default']>
+  'LazyPageNavBar': LazyComponent<typeof import("../../components/PageNavBar.vue")['default']>
   'LazyWhiteCubePlaceholder': LazyComponent<typeof import("../../components/WhiteCubePlaceholder.vue")['default']>
   'LazyNuxtWelcome': LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/welcome.vue")['default']>
   'LazyNuxtLayout': LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-layout")['default']>

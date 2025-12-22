@@ -2,6 +2,8 @@
  * TypeScript interfaces for the modular 3D model loading system
  */
 
+import type * as THREE from 'three';
+
 /**
  * Configuration for a single 3D model
  */
@@ -132,13 +134,13 @@ export interface ModelSceneData {
  * Events emitted during model loading
  */
 export interface ModelEvents {
-  'loading-started': [];
-  'loading-progress': [progress: number];
-  'loading-complete': [];
-  'loading-error': [error: Error];
-  'model-ready': [model: THREE.Object3D];
-  'camera-ready': [camera: THREE.PerspectiveCamera];
-  'scene-ready': [scene: ModelSceneData];
+  "loading-started": [];
+  "loading-progress": [progress: number];
+  "loading-complete": [];
+  "loading-error": [error: Error];
+  "model-ready": [model: THREE.Object3D];
+  "camera-ready": [camera: THREE.PerspectiveCamera];
+  "scene-ready": [scene: ModelSceneData];
 }
 
 /**
@@ -155,24 +157,44 @@ export const MODEL_DEFAULTS = {
   placeholder: {
     dimensions: [15, 12, 15] as [number, number, number],
     rotation: [0, Math.PI / 6, 0] as [number, number, number],
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   sceneObjects: {
-    cameraName: 'Camera',
-    lookAtTargetName: 'EmptyLookAtTarget',
+    cameraName: "Camera",
+    lookAtTargetName: "EmptyLookAtTarget",
   },
   loading: {
     useDraco: true,
-    loadingMessage: 'Loading 3D model...',
+    loadingMessage: "Loading 3D model...",
   },
 } as const;
 
 /**
- * Type helper for creating model configs with defaults
+ * Type helper for creating model configs with defaults applied
+ * Uses NonNullable to handle the optional nature of the parent properties
  */
-export type ModelConfigWithDefaults = ModelConfig & {
-  camera: Required<ModelConfig['camera']>;
-  placeholder: Required<ModelConfig['placeholder']>;
-  sceneObjects: Required<ModelConfig['sceneObjects']>;
-  loading: Required<ModelConfig['loading']>;
+export type ModelConfigWithDefaults = Omit<ModelConfig, 'camera' | 'placeholder' | 'sceneObjects' | 'loading'> & {
+  camera: {
+    position: [number, number, number];
+    fov: number;
+    sphericalRadius: number;
+    initialTheta: number;
+    initialPhi: number;
+    yOffset: number;
+  };
+  placeholder: {
+    dimensions: [number, number, number];
+    rotation: [number, number, number];
+    color: string;
+  };
+  sceneObjects: {
+    meshName: string;
+    cameraName: string;
+    lookAtTargetName: string;
+  };
+  loading: {
+    fileSize: string;
+    loadingMessage: string;
+    useDraco: boolean;
+  };
 };

@@ -4,7 +4,8 @@
       "Bash(npm run dev:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npx vue-tsc:*)"
     ],
     "deny": [],
     "ask": []
