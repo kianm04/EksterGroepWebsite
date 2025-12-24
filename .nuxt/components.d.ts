@@ -15,7 +15,6 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 
 export const HouseModelRig: typeof import("../components/HouseModelRig.vue")['default']
-export const ModelCarouselNav: typeof import("../components/ModelCarouselNav.vue")['default']
 export const ModelPlaceholder: typeof import("../components/ModelPlaceholder.vue")['default']
 export const Navigation: typeof import("../components/Navigation.vue")['default']
 export const PageContent: typeof import("../components/PageContent.vue")['default']
@@ -172,7 +171,6 @@ export const Head: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watch
 export const Body: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/head/runtime/components")['Body']
 export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@4.1.3_@parcel+watcher@2.5.1_@types+node@24.8.1_@vue+compiler-sfc@3.5.22_db0@0.3.4__7ae13b9cb419a8db1369d88b6c957171/node_modules/nuxt/dist/app/components/nuxt-island")['default']
 export const LazyHouseModelRig: LazyComponent<typeof import("../components/HouseModelRig.vue")['default']>
-export const LazyModelCarouselNav: LazyComponent<typeof import("../components/ModelCarouselNav.vue")['default']>
 export const LazyModelPlaceholder: LazyComponent<typeof import("../components/ModelPlaceholder.vue")['default']>
 export const LazyNavigation: LazyComponent<typeof import("../components/Navigation.vue")['default']>
 export const LazyPageContent: LazyComponent<typeof import("../components/PageContent.vue")['default']>

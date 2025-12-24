@@ -60,6 +60,12 @@ export default <Partial<typeof Config>>{
       backdropBlur: {
         xs: '2px',
       },
+      scale: {
+        '98': '0.98',
+        '102': '1.02',
+        '105': '1.05',
+        '125': '1.25',
+      },
     },
   },
 }

@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { computed, onUnmounted, onMounted, ref, shallowRef, watch, nextTick, markRaw } from "vue";
+import {
+  computed,
+  onUnmounted,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+  nextTick,
+  markRaw,
+} from "vue";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
@@ -7,23 +16,26 @@ import WhiteCubePlaceholder from "./WhiteCubePlaceholder.vue";
 import { useCameraControls } from "~/composables/useCameraControls";
 import { useModelCache } from "~/composables/useModelCache";
 
-const props = withDefaults(defineProps<{
-  canvasElement?: HTMLCanvasElement | null;
-  loadModel?: boolean;
-  modelPath?: string;
-  targetRadius?: number;
-  targetTheta?: number;
-  targetPhi?: number;
-  cameraYOffset?: number;
-  isTransitioning?: boolean;
-}>(), {
-  modelPath: '/models/ok10b_circle.glb',
-  targetRadius: 50,
-  targetTheta: 0,
-  targetPhi: Math.PI / 4,
-  cameraYOffset: 0,
-  isTransitioning: false
-});
+const props = withDefaults(
+  defineProps<{
+    canvasElement?: HTMLCanvasElement | null;
+    loadModel?: boolean;
+    modelPath?: string;
+    targetRadius?: number;
+    targetTheta?: number;
+    targetPhi?: number;
+    cameraYOffset?: number;
+    isTransitioning?: boolean;
+  }>(),
+  {
+    modelPath: "/models/ok10b_circle.glb",
+    targetRadius: 50,
+    targetTheta: 0,
+    targetPhi: Math.PI / 4,
+    cameraYOffset: 0,
+    isTransitioning: false,
+  }
+);
 
 const emit = defineEmits<{
   "camera-ready": [camera: THREE.PerspectiveCamera];
@@ -49,7 +61,9 @@ const houseModel = shallowRef<THREE.Object3D | null>(null);
 // Fade transition state
 const cubeOpacity = ref(1);
 const modelOpacity = ref(0);
-const showHouseModel = computed(() => props.loadModel && hasLoadedFirstModel.value);
+const showHouseModel = computed(
+  () => props.loadModel && hasLoadedFirstModel.value
+);
 
 // GLTF loader instances (created once, reused)
 let gltfLoader: GLTFLoader | null = null;
@@ -58,7 +72,7 @@ let dracoLoader: DRACOLoader | null = null;
 const getLoader = (): GLTFLoader => {
   if (!gltfLoader) {
     dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('/libs/draco/');
+    dracoLoader.setDecoderPath("/libs/draco/");
     gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
   }
@@ -75,6 +89,7 @@ const loadModel = async (path: string): Promise<THREE.Group | null> => {
     console.log(`[HouseModelRig] Using cached model: ${path}`);
     const cachedScene = getCachedModel(path);
     if (cachedScene) {
+      // Always process color space even for cached models
       return cachedScene;
     }
   }
@@ -119,12 +134,12 @@ const {
   updateCameraPosition,
   setAutoRotation,
   setTargetCoordinates,
-  setImmediateCoordinates
+  setImmediateCoordinates,
 } = useCameraControls({
   baseRadius: 50,
   autoRotationSpeed: (2 * Math.PI) / 90,
   sensitivity: 0.004,
-  damping: 0.08
+  damping: 0.08,
 });
 
 // Watch for target coordinate changes and update camera controls
@@ -136,14 +151,14 @@ watch(
       setImmediateCoordinates({
         radius: radius as number,
         theta: theta as number,
-        phi: phi as number
+        phi: phi as number,
       });
     } else {
       // When not transitioning, use target for smooth interpolation
       setTargetCoordinates({
         radius: radius as number,
         theta: theta as number,
-        phi: phi as number
+        phi: phi as number,
       });
     }
   },
@@ -186,26 +201,15 @@ watch(
       // Display the scene after camera is properly set up
       currentScene.value = scene;
       hasLoadedFirstModel.value = true;
+
+      // Hide the placeholder cube immediately when model is ready
+      cubeOpacity.value = 0;
+
       console.log(`[HouseModelRig] Scene displayed: ${newPath}`);
     }
   },
   { immediate: true }
 );
-
-// Watch for transition between cube and house model
-watch(showHouseModel, (shouldShow) => {
-  if (shouldShow) {
-    // Start fade transition - using simple animation approach
-    const fadeInterval = setInterval(() => {
-      cubeOpacity.value = Math.max(0, cubeOpacity.value - 0.05);
-      modelOpacity.value = Math.min(1, modelOpacity.value + 0.05);
-
-      if (cubeOpacity.value <= 0 && modelOpacity.value >= 1) {
-        clearInterval(fadeInterval);
-      }
-    }, 16); // ~60fps
-  }
-});
 
 // Mouse event handlers using the composable
 const handleMouseDown = (event: MouseEvent) => {
@@ -399,7 +403,12 @@ function startLoop() {
 
 function loop() {
   // Update camera position with target radius and Y offset
-  updateCameraPosition(props.targetRadius, undefined, undefined, props.cameraYOffset);
+  updateCameraPosition(
+    props.targetRadius,
+    undefined,
+    undefined,
+    props.cameraYOffset
+  );
 
   rafId = requestAnimationFrame(loop);
 }
@@ -415,10 +424,7 @@ onUnmounted(() => {
 
 <template>
   <!-- White cube placeholder with fade transition -->
-  <WhiteCubePlaceholder
-    v-if="cubeOpacity > 0"
-    :opacity="cubeOpacity"
-  />
+  <WhiteCubePlaceholder v-if="cubeOpacity > 0" :opacity="cubeOpacity" />
 
   <!-- House model - only show when button clicked and model is loaded -->
   <!-- Key forces primitive remount when model changes, ensuring proper scene graph update -->
@@ -429,7 +435,23 @@ onUnmounted(() => {
   />
 
   <!-- Always render the camera - key ensures proper update when model changes -->
-  <primitive v-if="runtimeCamera" :key="`camera-${props.modelPath}`" :object="runtimeCamera" attach="camera" />
+  <primitive
+    v-if="runtimeCamera"
+    :key="`camera-${props.modelPath}`"
+    :object="runtimeCamera"
+    attach="camera"
+  />
 
-  <TresAmbientLight :intensity="3" />
+  <!-- Lighting setup for proper PBR material rendering -->
+  <TresAmbientLight :intensity="1" />
+  <TresDirectionalLight
+    :position="[10, 20, 15]"
+    :intensity="2"
+    :cast-shadow="false"
+  />
+  <TresDirectionalLight
+    :position="[-10, 15, -10]"
+    :intensity="1"
+    :cast-shadow="false"
+  />
 </template>

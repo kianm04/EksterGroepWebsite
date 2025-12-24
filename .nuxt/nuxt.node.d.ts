@@ -1,6 +1,6 @@
-/// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxtjs/tailwindcss" />
 /// <reference types="@tresjs/nuxt" />
+/// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxt/telemetry" />
 /// <reference path="types/modules.d.ts" />
 /// <reference path="types/runtime-config.d.ts" />

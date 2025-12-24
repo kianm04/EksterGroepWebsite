@@ -10,117 +10,121 @@
  * 3. Optionally create a custom content component in components/pages/
  */
 
-import type { PageConfig, AdjacentPages } from '~/types/pages';
+import type { PageConfig, AdjacentPages } from "~/types/pages";
 
 /**
  * All pages in navigation order
  */
 export const PAGES: PageConfig[] = [
   {
-    id: 'intro',
-    name: 'Introduction',
+    id: "intro",
+    name: "Introduction",
     order: 0,
-    modelId: 'ok10b',
+    modelId: "ok10b",
     camera: {
-      radius: 50,
+      radius: 20,
       theta: 0,
       phi: Math.PI / 4,
+      yOffset: -3,
     },
     transition: {
       duration: 800,
-      easing: 'easeInOut',
+      easing: "easeInOut",
       fadeUI: true,
       uiFadeDuration: 200,
-      type: 'zoom',
+      type: "zoom",
     },
     content: {
-      position: 'left',
+      position: "left",
       visibleDuringTransition: false,
       staticContent: {
-        title: 'De Ekstergroep',
+        title: "De Ekstergroep",
         body: [
-          'De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed.',
-          'Wij leggen de focus op esthetiek, waarbij degelijkheid en levensduur als vereisten worden meegenomen.',
-          'We werken samen als team en pakken jaarlijks een aantal totalrenovaties op. Daarin begeleiden we de client van begin tot eind. Samen met de architect zetten we de dromen op papier, die we vervolgens door de constructeur laten doorrekenen. Na het uitgebreid bespreken en plannen van de uit te voeren taken komt het team ten tonele en streven we er naar alles naar planning uit te voeren.',
+          "De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed.",
+          "Wij leggen de focus op esthetiek, waarbij degelijkheid en levensduur als vereisten worden meegenomen.",
+          "Als hecht team pakken we jaarlijks een aantal totalrenovaties op, waarbij we de cliënt van begin tot eind begeleiden. Samen met architect en constructeur zetten we dromen op papier en voeren we alles naar planning uit.",
         ],
-        ctaText: 'info@ekstergroep.nl',
-        ctaHref: 'mailto:info@ekstergroep.nl',
+        ctaText: "info@ekstergroep.nl",
+        ctaHref: "mailto:info@ekstergroep.nl",
       },
     },
     meta: {
-      title: 'Ekstergroep - Renovatie & Vastgoed',
-      description: 'De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed.',
+      title: "Ekstergroep - Renovatie & Vastgoed",
+      description:
+        "De Ekstergroep doet beheer, exploitatie, renovatie en verbetering van zowel monumentaal als gewoon vastgoed.",
     },
     navigable: true,
   },
   {
-    id: 'craftsmanship',
-    name: 'Craftsmanship',
+    id: "craftsmanship",
+    name: "Craftsmanship",
     order: 1,
-    modelId: 'ok10b',
+    modelId: "ok10b",
     camera: {
-      radius: 28,
+      radius: 15,
       theta: Math.PI / 4,
       phi: Math.PI / 3,
+      yOffset: -5,
     },
     transition: {
       duration: 1000,
-      easing: 'easeInOut',
+      easing: "easeInOut",
       fadeUI: true,
       uiFadeDuration: 200,
-      type: 'orbit',
+      type: "orbit",
     },
     content: {
-      position: 'left',
+      position: "left",
       visibleDuringTransition: false,
       staticContent: {
-        title: 'Discover Our Craftsmanship',
+        title: "Discover Our Craftsmanship",
         body: [
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-          'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+          "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
         ],
       },
     },
     meta: {
-      title: 'Craftsmanship - Ekstergroep',
-      description: 'Discover our architectural craftsmanship and attention to detail.',
+      title: "Craftsmanship - Ekstergroep",
+      description:
+        "Discover our architectural craftsmanship and attention to detail.",
     },
     navigable: true,
   },
   {
-    id: 'house2',
-    name: 'Second Project',
+    id: "house2",
+    name: "Second Project",
     order: 2,
-    modelId: 'br62b',
+    modelId: "br62b",
     camera: {
-      radius: 50,
-      theta: 0,
-      phi: Math.PI / 4,
-      yOffset: 15,
+      radius: 35,
+      theta: Math.PI / 5,
+      phi: Math.PI / 3,
+      yOffset: 2,
     },
     transition: {
       duration: 1200,
-      easing: 'easeInOut',
+      easing: "easeInOut",
       fadeUI: true,
       uiFadeDuration: 300,
-      type: 'zoom',
+      type: "zoom",
     },
     content: {
-      position: 'right',
+      position: "right",
       visibleDuringTransition: false,
       staticContent: {
-        title: 'Another Vision',
-        subtitle: 'Our Second Architectural Project',
+        title: "Another Vision",
+        subtitle: "Our Second Architectural Project",
         body: [
-          'A different perspective on modern living, this project showcases our versatility in architectural design.',
-          'Each project we undertake receives the same level of dedication and attention to detail.',
+          "A different perspective on modern living, this project showcases our versatility in architectural design.",
+          "Each project we undertake receives the same level of dedication and attention to detail.",
         ],
       },
     },
     meta: {
-      title: 'Second Project - Ekstergroep',
-      description: 'Another architectural vision from Ekstergroep.',
+      title: "Second Project - Ekstergroep",
+      description: "Another architectural vision from Ekstergroep.",
     },
     navigable: true,
   },
@@ -195,8 +199,7 @@ export function pageExists(id: string): boolean {
  * Get all page IDs in order
  */
 export function getPageIds(): string[] {
-  return PAGES
-    .slice()
+  return PAGES.slice()
     .sort((a, b) => a.order - b.order)
     .map((page) => page.id);
 }

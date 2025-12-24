@@ -51,24 +51,21 @@ const isNextDisabled = computed(() => !canGoNext.value || isTransitioning.value)
 
 <template>
   <nav
-    class="page-nav-bar"
+    class="fixed bottom-6 max-md:bottom-5 left-1/2 -translate-x-1/2 z-50 antialiased"
     role="navigation"
     aria-label="Page navigation"
   >
-    <div class="nav-container">
+    <div class="flex items-center gap-4 max-md:gap-3 py-3 max-md:py-2.5 px-5 max-md:px-4 bg-white border border-gray-200 rounded-full shadow-md">
       <!-- Back button -->
       <button
-        class="nav-button"
-        :class="{ 'nav-button-disabled': isPrevDisabled }"
+        class="flex items-center justify-center w-10 h-10 max-md:w-9 max-md:h-9 bg-white border border-gray-200 rounded-full text-gray-700 cursor-pointer transition-all duration-200 ease-out hover:scale-105 hover:shadow-md hover:border-gray-300 active:scale-98 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none disabled:hover:border-gray-200"
         :disabled="isPrevDisabled"
         :aria-disabled="isPrevDisabled"
         aria-label="Previous page"
         @click="goPrevious"
       >
         <svg
-          class="nav-icon"
-          width="20"
-          height="20"
+          class="shrink-0 w-5 h-5 max-md:w-[18px] max-md:h-[18px]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -81,12 +78,12 @@ const isNextDisabled = computed(() => !canGoNext.value || isTransitioning.value)
       </button>
 
       <!-- Page indicator dots -->
-      <div class="page-dots" role="tablist" aria-label="Page indicators">
+      <div class="flex items-center gap-2 max-md:gap-1.5 px-2 max-md:px-1" role="tablist" aria-label="Page indicators">
         <button
           v-for="(page, index) in pages"
           :key="page.id"
-          class="page-dot"
-          :class="{ 'page-dot-active': index === currentIndex }"
+          class="w-2 h-2 max-md:w-1.5 max-md:h-1.5 p-0 border-none rounded-full cursor-pointer transition-all duration-200 ease-out hover:bg-gray-400 hover:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-default disabled:hover:scale-100"
+          :class="index === currentIndex ? 'bg-gray-900 scale-125 hover:bg-gray-900' : 'bg-gray-300'"
           :aria-selected="index === currentIndex"
           :aria-label="`Go to ${page.name}`"
           role="tab"
@@ -97,17 +94,14 @@ const isNextDisabled = computed(() => !canGoNext.value || isTransitioning.value)
 
       <!-- Next button -->
       <button
-        class="nav-button"
-        :class="{ 'nav-button-disabled': isNextDisabled }"
+        class="flex items-center justify-center w-10 h-10 max-md:w-9 max-md:h-9 bg-white border border-gray-200 rounded-full text-gray-700 cursor-pointer transition-all duration-200 ease-out hover:scale-105 hover:shadow-md hover:border-gray-300 active:scale-98 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none disabled:hover:border-gray-200"
         :disabled="isNextDisabled"
         :aria-disabled="isNextDisabled"
         aria-label="Next page"
         @click="goNext"
       >
         <svg
-          class="nav-icon"
-          width="20"
-          height="20"
+          class="shrink-0 w-5 h-5 max-md:w-[18px] max-md:h-[18px]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -121,136 +115,3 @@ const isNextDisabled = computed(() => !canGoNext.value || isTransitioning.value)
     </div>
   </nav>
 </template>
-
-<style scoped>
-.page-nav-bar {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  -webkit-font-smoothing: antialiased;
-}
-
-.nav-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.nav-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 50%;
-  color: #374151;
-  cursor: pointer;
-  transition: all 200ms ease-out;
-}
-
-.nav-button:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border-color: #D1D5DB;
-}
-
-.nav-button:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.nav-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px #9CA3AF, 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.nav-button-disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.nav-icon {
-  flex-shrink: 0;
-}
-
-.page-dots {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-}
-
-.page-dot {
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  background: #D1D5DB;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 200ms ease-out;
-}
-
-.page-dot:hover:not(:disabled) {
-  background: #9CA3AF;
-  transform: scale(1.2);
-}
-
-.page-dot:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px #9CA3AF;
-}
-
-.page-dot-active {
-  background: #111827;
-  transform: scale(1.25);
-}
-
-.page-dot-active:hover {
-  background: #111827;
-}
-
-.page-dot:disabled {
-  cursor: default;
-}
-
-/* Mobile adjustments */
-@media (max-width: 767px) {
-  .page-nav-bar {
-    bottom: 20px;
-  }
-
-  .nav-container {
-    gap: 12px;
-    padding: 10px 16px;
-  }
-
-  .nav-button {
-    width: 36px;
-    height: 36px;
-  }
-
-  .nav-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .page-dots {
-    gap: 6px;
-    padding: 0 4px;
-  }
-
-  .page-dot {
-    width: 6px;
-    height: 6px;
-  }
-}
-</style>

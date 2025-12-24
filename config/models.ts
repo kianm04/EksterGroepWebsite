@@ -13,11 +13,11 @@ import {
  */
 export const MODELS: ModelConfig[] = [
   {
-    id: "ok10b",
-    name: "Ekster House",
-    path: "/models/ok10b_circle.glb",
-    buttonLabel: "Huis 1",
-    description: "Primary architectural visualization",
+    id: "logo_sjabloon",
+    name: "LOGO",
+    path: "/models/EKSTERSJABLOONLOGO3D.glb",
+    buttonLabel: "LOGO",
+    description: "",
 
     sceneObjects: {
       cameraName: "Camera",
@@ -28,6 +28,40 @@ export const MODELS: ModelConfig[] = [
       position: [30, 20, 30],
       fov: 50,
       sphericalRadius: 45,
+      initialTheta: Math.atan2(30, 30),
+      initialPhi: Math.PI / 3,
+    },
+
+    placeholder: {
+      dimensions: [15, 12, 15],
+      rotation: [0, Math.PI / 6, 0],
+      color: "#FFFFFF",
+    },
+
+    loading: {
+      fileSize: "~25 MB",
+      loadingMessage: "Loading house model...",
+      useDraco: true,
+    },
+
+    tags: ["architecture", "residential", "main"],
+  },
+  {
+    id: "ok10b",
+    name: "Ekster House",
+    path: "/models/ok10b_circ.glb",
+    buttonLabel: "Huis 1",
+    description: "Primary architectural visualization",
+
+    sceneObjects: {
+      cameraName: "Camera",
+      lookAtTargetName: "EmptyLookAtTarget",
+    },
+
+    camera: {
+      position: [5, 10, 15],
+      fov: 50,
+      sphericalRadius: 15,
       initialTheta: Math.atan2(30, 30),
       initialPhi: Math.PI / 3,
     },
@@ -104,24 +138,33 @@ export function getModelWithDefaults(
     camera: {
       position: model.camera?.position ?? MODEL_DEFAULTS.camera.position,
       fov: model.camera?.fov ?? MODEL_DEFAULTS.camera.fov,
-      sphericalRadius: model.camera?.sphericalRadius ?? MODEL_DEFAULTS.camera.sphericalRadius,
-      initialTheta: model.camera?.initialTheta ?? MODEL_DEFAULTS.camera.initialTheta,
+      sphericalRadius:
+        model.camera?.sphericalRadius ?? MODEL_DEFAULTS.camera.sphericalRadius,
+      initialTheta:
+        model.camera?.initialTheta ?? MODEL_DEFAULTS.camera.initialTheta,
       initialPhi: model.camera?.initialPhi ?? MODEL_DEFAULTS.camera.initialPhi,
       yOffset: model.camera?.yOffset ?? 0,
     },
     placeholder: {
-      dimensions: model.placeholder?.dimensions ?? MODEL_DEFAULTS.placeholder.dimensions,
-      rotation: model.placeholder?.rotation ?? MODEL_DEFAULTS.placeholder.rotation,
+      dimensions:
+        model.placeholder?.dimensions ?? MODEL_DEFAULTS.placeholder.dimensions,
+      rotation:
+        model.placeholder?.rotation ?? MODEL_DEFAULTS.placeholder.rotation,
       color: model.placeholder?.color ?? MODEL_DEFAULTS.placeholder.color,
     },
     sceneObjects: {
-      meshName: model.sceneObjects?.meshName ?? '',
-      cameraName: model.sceneObjects?.cameraName ?? MODEL_DEFAULTS.sceneObjects.cameraName,
-      lookAtTargetName: model.sceneObjects?.lookAtTargetName ?? MODEL_DEFAULTS.sceneObjects.lookAtTargetName,
+      meshName: model.sceneObjects?.meshName ?? "",
+      cameraName:
+        model.sceneObjects?.cameraName ??
+        MODEL_DEFAULTS.sceneObjects.cameraName,
+      lookAtTargetName:
+        model.sceneObjects?.lookAtTargetName ??
+        MODEL_DEFAULTS.sceneObjects.lookAtTargetName,
     },
     loading: {
-      fileSize: model.loading?.fileSize ?? '',
-      loadingMessage: model.loading?.loadingMessage ?? MODEL_DEFAULTS.loading.loadingMessage,
+      fileSize: model.loading?.fileSize ?? "",
+      loadingMessage:
+        model.loading?.loadingMessage ?? MODEL_DEFAULTS.loading.loadingMessage,
       useDraco: model.loading?.useDraco ?? MODEL_DEFAULTS.loading.useDraco,
     },
   };

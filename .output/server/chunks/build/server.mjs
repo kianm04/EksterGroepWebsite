@@ -384,7 +384,7 @@ const _routes = [
   {
     name: "index",
     path: "/",
-    component: () => import('./index-DtePRMcO.mjs')
+    component: () => import('./index-fPNlVoBS.mjs')
   }
 ];
 const ROUTE_KEY_PARENTHESES_RE = /(:\w+)\([^)]+\)/g;
@@ -857,8 +857,8 @@ const _sfc_main$1 = {
     const statusMessage = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
     const description = _error.message || _error.toString();
     const stack = void 0;
-    const _Error404 = defineAsyncComponent(() => import('./error-404-Bn7FE3nT.mjs'));
-    const _Error = defineAsyncComponent(() => import('./error-500-CU0zlPIz.mjs'));
+    const _Error404 = defineAsyncComponent(() => import('./error-404-BzdStgJ0.mjs'));
+    const _Error = defineAsyncComponent(() => import('./error-500-Clo-8tjr.mjs'));
     const ErrorTemplate = is404 ? _Error404 : _Error;
     return (_ctx, _push, _parent, _attrs) => {
       _push(ssrRenderComponent(unref(ErrorTemplate), mergeProps({ statusCode: unref(statusCode), statusMessage: unref(statusMessage), description: unref(description), stack: unref(stack) }, _attrs), null, _parent));

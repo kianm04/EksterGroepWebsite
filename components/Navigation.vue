@@ -22,11 +22,8 @@ onMounted(() => {
 <template>
   <nav
     v-show="isVisible"
-    class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-1.5 sm:py-3 transition-all duration-700 bg-white border-b border-gray-200"
-    :class="
-      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-    "
-    style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1)"
+    class="flex-shrink-0 z-50 px-4 sm:px-6 py-1.5 sm:py-3 bg-white border-b border-gray-200 shadow-md antialiased transition-opacity duration-300 ease-out"
+    :class="isVisible ? 'opacity-100' : 'opacity-0'"
   >
     <div class="max-w-7xl mx-auto grid grid-cols-3 items-center py-1 sm:py-2">
       <!-- Logo section -->
@@ -49,53 +46,14 @@ onMounted(() => {
           v-for="(button, index) in buttons"
           :key="button.id"
           :href="button.href"
-          class="relative px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 hover:border-gray-300"
+          class="relative px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm tracking-wide transition-all duration-200 ease-out cursor-pointer select-none group bg-white border border-gray-200 shadow-sm text-gray-700 hover:text-gray-900 hover:border-gray-300 hover:scale-102 hover:shadow-lg active:scale-98 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
           :style="`animation-delay: ${index * 100}ms;`"
-          :class="[
-            'text-gray-700 hover:text-gray-900',
-            'hover:scale-102 active:scale-98',
-            'hover:shadow-lg',
-            isVisible ? 'animate-slide-in' : 'opacity-0',
-          ]"
-          style="
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease-out;
-          "
+          :class="isVisible ? 'animate-slide-in' : 'opacity-0'"
         >
           <!-- Button text -->
           <span class="relative z-10 font-sans">{{ button.label }}</span>
-
-          <!-- Focus ring for accessibility -->
-          <div
-            class="absolute inset-0 rounded-lg ring-2 ring-gray-400/0 group-focus-visible:ring-gray-400/50 transition-all duration-200"
-          ></div>
         </a>
       </div>
     </div>
   </nav>
 </template>
-
-<style scoped>
-/* Clean navigation styling */
-nav {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* GPU acceleration for smooth animations */
-a {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-/* Custom focus styles for better accessibility */
-a:focus-visible {
-  outline: none;
-}
-
-/* Active state enhancement */
-a:active {
-  transform: scale(0.98) translateZ(0);
-}
-</style>
